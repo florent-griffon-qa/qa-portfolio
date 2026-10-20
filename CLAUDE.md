@@ -55,3 +55,6 @@ docker/       test runner image, compose stack
     clone in a temp directory.
 14. Before any push, run `gh auth status` and `git config user.email`. Stop if the account is not
     `florent-griffon-qa` or the email is not `130713131+florent-griffon-qa@users.noreply.github.com`.
+15. Before any irreversible action (delete, visibility change, secret removal), show exactly what
+    will be affected (list, ids, names) and wait for the owner's explicit go. A plan approved
+    earlier is not a go for the irreversible step itself.
