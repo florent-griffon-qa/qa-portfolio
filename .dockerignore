@@ -1,0 +1,13 @@
+# Never ship local secrets or the deny-list into an image layer.
+.denylist
+.env
+.env.*
+!.env.example
+
+.git/
+node_modules/
+reports/
+test-results/
+playwright-report/
+blob-report/
+mobile/apps/
