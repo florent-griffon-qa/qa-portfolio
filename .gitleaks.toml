@@ -1,0 +1,13 @@
+title = "qa-portfolio gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Generated reports and dependencies"
+paths = [
+  '''^reports/''',
+  '''^test-results/''',
+  '''^playwright-report/''',
+  '''^node_modules/''',
+]

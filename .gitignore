@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Test outputs and reports
+reports/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# Local secrets and environment
+.env
+.env.*
+!.env.example
+
+# Local deny-list (CI reads the DENYLIST secret instead)
+.denylist
+
+# Mobile app binaries (downloaded by script, never committed)
+mobile/apps/*.apk
+
+# Logs and OS files
+*.log
+.DS_Store
+Thumbs.db

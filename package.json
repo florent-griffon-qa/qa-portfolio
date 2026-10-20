@@ -1,0 +1,32 @@
+{
+  "name": "qa-portfolio",
+  "version": "0.1.0",
+  "private": true,
+  "description": "QA automation portfolio: Postman/Newman API tests and Playwright UI tests, dockerized, with CI.",
+  "license": "MIT",
+  "author": "Florent Griffon",
+  "type": "module",
+  "engines": {
+    "node": ">=22.17.1 <23"
+  },
+  "scripts": {
+    "prepare": "husky",
+    "lint": "eslint . && prettier --check .",
+    "format": "prettier --write .",
+    "typecheck": "tsc --noEmit",
+    "scan:denylist": "node scripts/denylist-scan.mjs",
+    "scan:secrets": "node scripts/gitleaks.mjs staged",
+    "scan:secrets:history": "node scripts/gitleaks.mjs history"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "21.2.4",
+    "@commitlint/config-conventional": "21.2.4",
+    "@eslint/js": "10.0.1",
+    "@types/node": "22.20.5",
+    "eslint": "10.13.0",
+    "husky": "9.1.7",
+    "prettier": "3.9.10",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.0"
+  }
+}

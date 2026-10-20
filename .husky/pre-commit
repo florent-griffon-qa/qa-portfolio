@@ -1,0 +1,3 @@
+npm run lint
+npm run scan:secrets
+npm run scan:denylist
