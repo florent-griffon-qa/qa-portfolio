@@ -29,6 +29,11 @@ docker compose -f docker/docker-compose.yml down
 
 The runner fails when an assertion fails, when the run errors, and when no assertion ran at all.
 
+The HTML report is generated with htmlextra's `skipSensitiveData`: request and response headers
+and bodies are left out, because they carry the authentication token and the credentials. The
+report keeps the request list, the status codes and every Test Results line, which already show
+the checked values.
+
 ## Test data independence
 
 The public instance is reset regularly and shared by everyone. No test relies on an existing

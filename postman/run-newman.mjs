@@ -34,6 +34,9 @@ newman.run(
       htmlextra: {
         export: join(reportDir, `newman-${envName}.html`),
         title: `Restful-Booker API tests (${envName})`,
+        // Drop request/response headers and bodies: they carry the auth token (Cookie header,
+        // CreateToken response) and the credentials. Checked values stay in the test names.
+        skipSensitiveData: true,
       },
       junit: { export: join(reportDir, `newman-${envName}-junit.xml`) },
     },
