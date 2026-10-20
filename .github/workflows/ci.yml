@@ -1,0 +1,121 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run lint
+
+  secrets-scan:
+    name: secrets-scan
+    needs: lint
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+      - name: gitleaks (full history)
+        run: node scripts/gitleaks.mjs history
+      - name: Deny-list (working tree)
+        env:
+          DENYLIST: ${{ secrets.DENYLIST }}
+        run: node scripts/denylist-scan.mjs
+      - name: Deny-list (full history)
+        env:
+          DENYLIST: ${{ secrets.DENYLIST }}
+        run: node scripts/denylist-scan.mjs --history
+      - name: npm audit (blocking on critical)
+        run: npm audit --audit-level=critical
+      - name: npm audit (full report, informational)
+        if: always()
+        run: |
+          mkdir -p reports/audit
+          npm audit --json > reports/audit/npm-audit.json || true
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: npm-audit
+          path: reports/audit/
+          if-no-files-found: ignore
+
+  api-tests:
+    name: api-tests
+    needs: secrets-scan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      restful-booker:
+        image: mwinteringham/restfulbooker@sha256:e4a04233731ceca2e6d99bca16689e0d4bc44631047ab351b6f11b5fa08fb418
+        ports:
+          - 3001:3001
+        options: >-
+          --health-cmd "curl -fs -o /dev/null http://localhost:3001/booking"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Newman (local Restful-Booker container)
+        env:
+          ENV: local
+          BASE_URL: http://localhost:3001
+        run: npm run test:api
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: api-report
+          path: reports/api/
+          if-no-files-found: warn
+
+  e2e-smoke:
+    name: e2e-smoke
+    needs: api-tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    # Same base image (and digest) as docker/Dockerfile: CI and local runs match.
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.1-noble@sha256:7852dc5a7d72f5fe458a597d690f6c42fbc8e9e26ddfa95f8e6ef552558d9bbf
+      options: --user 1001
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: npm ci --ignore-scripts
+      - name: Playwright smoke suite
+        env:
+          ENV: public
+        run: npm run test:smoke
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: e2e-report
+          path: reports/e2e/
+          if-no-files-found: warn
