@@ -50,3 +50,8 @@ docker/       test runner image, compose stack
 11. Never push without the owner's explicit go.
 12. Say it before coding when an approach is not recommended (security, maintenance, scalability),
     and propose the alternative.
+13. Never run destructive Git commands in the working repo: `reset --hard`, `clean -fd`,
+    `checkout -- .`, `push --force`, `rebase`. A negative test that needs one runs in a throwaway
+    clone in a temp directory.
+14. Before any push, run `gh auth status` and `git config user.email`. Stop if the account is not
+    `florent-griffon-qa` or the email is not `130713131+florent-griffon-qa@users.noreply.github.com`.
