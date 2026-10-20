@@ -1,8 +1,8 @@
-// Shared test fixtures: page objects, test data, and an automatic error-context capture.
+// Shared test fixtures: page objects and test data.
 // Specs import { test, expect } from here, never from '@playwright/test' directly.
+// On failure, Playwright writes error-context.md (ARIA snapshot) next to the trace.
 import { test as base, expect } from '@playwright/test';
 import { testData, type TestData } from '../config/env';
-import { captureErrorContext } from '../helpers/captureErrorContext';
 import { CartPage } from '../pages/CartPage';
 import { CheckoutPage } from '../pages/CheckoutPage';
 import { InventoryPage } from '../pages/InventoryPage';
@@ -14,7 +14,6 @@ type Fixtures = {
   inventoryPage: InventoryPage;
   cartPage: CartPage;
   checkoutPage: CheckoutPage;
-  errorContext: void;
 };
 
 export const test = base.extend<Fixtures>({
@@ -33,16 +32,6 @@ export const test = base.extend<Fixtures>({
   checkoutPage: async ({ page }, use) => {
     await use(new CheckoutPage(page));
   },
-  // Runs for every test. On failure, attaches the URL and ARIA snapshot to the report.
-  errorContext: [
-    async ({ page }, use, testInfo) => {
-      await use();
-      if (testInfo.status !== testInfo.expectedStatus) {
-        await captureErrorContext(page, testInfo);
-      }
-    },
-    { auto: true },
-  ],
 });
 
 export { expect };

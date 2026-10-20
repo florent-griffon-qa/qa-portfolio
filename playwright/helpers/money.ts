@@ -7,7 +7,8 @@ export function parseCents(text: string): number {
   return Number(match[1]) * 100 + Number(match[2]);
 }
 
-// Tax rounded half-up to the cent, as displayed by the site (3198 * 8% = 319.84 -> 320).
+// Tax rounded to the nearest cent, as the site displays it (example: 319.84 cents -> 320).
+// The rate comes from playwright/test-data/<env>.json (taxRatePercent).
 export function taxCents(subtotalCents: number, ratePercent: number): number {
   return Math.round((subtotalCents * ratePercent) / 100);
 }

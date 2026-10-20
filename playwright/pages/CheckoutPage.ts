@@ -29,7 +29,8 @@
  *
  * INVARIANTS
  *   - Step two: subtotal = sum of item prices; total = subtotal + tax.
- *   - Tax = subtotal x 8 %, rounded to the cent (measured 2026-10-20: 39.98 -> 3.20).
+ *   - Tax = subtotal x taxRatePercent (test data, per environment), rounded to the cent.
+ *     Measured 2026-10-20: subtotal 39.98 -> tax 3.20, i.e. 8 %.
  *   - The cart badge is gone after finish.
  */
 import type { Locator, Page } from '@playwright/test';
