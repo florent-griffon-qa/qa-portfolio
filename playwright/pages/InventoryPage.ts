@@ -16,6 +16,7 @@
  *       button "Add to cart"                   becomes button "Remove" once added
  *
  * USE CASES
+ *   url                      pattern of the page URL, to assert navigation
  *   title                    the page title, to assert the page is loaded
  *   item(name)               the product card matching an exact product name
  *   addToCart(name)          click "Add to cart" on that card
@@ -29,6 +30,7 @@
 import type { Locator, Page } from '@playwright/test';
 
 export class InventoryPage {
+  readonly url = /\/inventory\.html$/;
   readonly title: Locator;
   readonly cartBadge: Locator;
   readonly cartLink: Locator;

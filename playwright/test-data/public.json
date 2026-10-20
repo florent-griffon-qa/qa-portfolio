@@ -12,6 +12,12 @@
     "postalCode": "75001"
   },
   "taxRatePercent": 8,
+  "pageTitles": {
+    "inventory": "Products",
+    "cart": "Your Cart",
+    "checkoutInformation": "Checkout: Your Information",
+    "checkoutOverview": "Checkout: Overview"
+  },
   "messages": {
     "lockedOut": "Epic sadface: Sorry, this user has been locked out.",
     "wrongCredentials": "Epic sadface: Username and password do not match any user in this service",

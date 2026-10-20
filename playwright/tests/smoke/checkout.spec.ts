@@ -6,8 +6,8 @@ test.describe('Checkout', { tag: '@smoke' }, () => {
     await test.step('Log in as the standard user', async () => {
       await loginPage.open();
       await loginPage.login(data.users.standard, data.password);
-      await expect(page).toHaveURL(/\/inventory\.html$/);
-      await expect(inventoryPage.title).toHaveText('Products');
+      await expect(page).toHaveURL(inventoryPage.url);
+      await expect(inventoryPage.title).toHaveText(data.pageTitles.inventory);
     });
   });
 
@@ -28,13 +28,13 @@ test.describe('Checkout', { tag: '@smoke' }, () => {
 
     await test.step('Open the cart', async () => {
       await inventoryPage.openCart();
-      await expect(cartPage.title).toHaveText('Your Cart');
+      await expect(cartPage.title).toHaveText(data.pageTitles.cart);
       await expect(cartPage.itemNames).toHaveText(data.products);
     });
 
     await test.step('Start the checkout', async () => {
       await cartPage.checkout();
-      await expect(checkoutPage.title).toHaveText('Checkout: Your Information');
+      await expect(checkoutPage.title).toHaveText(data.pageTitles.checkoutInformation);
     });
 
     await test.step('Fill the customer information', async () => {
@@ -46,7 +46,7 @@ test.describe('Checkout', { tag: '@smoke' }, () => {
 
     await test.step('Continue to the overview', async () => {
       await checkoutPage.continue();
-      await expect(checkoutPage.title).toHaveText('Checkout: Overview');
+      await expect(checkoutPage.title).toHaveText(data.pageTitles.checkoutOverview);
       await expect(checkoutPage.itemPrices).toHaveCount(data.products.length);
     });
 
@@ -67,7 +67,7 @@ test.describe('Checkout', { tag: '@smoke' }, () => {
 
     await test.step('Finish the order', async () => {
       await checkoutPage.finish();
-      await expect(page).toHaveURL(/\/checkout-complete\.html$/);
+      await expect(page).toHaveURL(checkoutPage.completeUrl);
       await expect(checkoutPage.completeHeader).toHaveText(data.messages.orderComplete);
       await expect(inventoryPage.cartBadge).toBeHidden();
     });
@@ -84,13 +84,13 @@ test.describe('Checkout', { tag: '@smoke' }, () => {
       await expect(inventoryPage.cartBadge).toHaveText('1');
       await inventoryPage.openCart();
       await cartPage.checkout();
-      await expect(checkoutPage.title).toHaveText('Checkout: Your Information');
+      await expect(checkoutPage.title).toHaveText(data.pageTitles.checkoutInformation);
     });
 
     await test.step('Continue with empty fields', async () => {
       await checkoutPage.continue();
       await expect(checkoutPage.error).toHaveText(data.messages.firstNameRequired);
-      await expect(checkoutPage.title).toHaveText('Checkout: Your Information');
+      await expect(checkoutPage.title).toHaveText(data.pageTitles.checkoutInformation);
     });
   });
 });

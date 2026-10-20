@@ -26,6 +26,7 @@
  *   fillInformation(customer)   fill the three fields (empty strings allowed)
  *   continue(), finish()        move to the next step
  *   itemPrices, subtotal, tax, total, completeHeader, error   values to assert
+ *   completeUrl                 pattern of the confirmation page URL
  *
  * INVARIANTS
  *   - Step two: subtotal = sum of item prices; total = subtotal + tax.
@@ -38,6 +39,7 @@ import type { Locator, Page } from '@playwright/test';
 export type Customer = { firstName: string; lastName: string; postalCode: string };
 
 export class CheckoutPage {
+  readonly completeUrl = /\/checkout-complete\.html$/;
   readonly title: Locator;
   readonly firstName: Locator;
   readonly lastName: Locator;

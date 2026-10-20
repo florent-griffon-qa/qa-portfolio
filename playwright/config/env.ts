@@ -12,6 +12,12 @@ export type TestData = {
   products: string[];
   customer: { firstName: string; lastName: string; postalCode: string };
   taxRatePercent: number;
+  pageTitles: {
+    inventory: string;
+    cart: string;
+    checkoutInformation: string;
+    checkoutOverview: string;
+  };
   messages: {
     lockedOut: string;
     wrongCredentials: string;
