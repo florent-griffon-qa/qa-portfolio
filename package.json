@@ -22,7 +22,8 @@
     "audit:critical": "npm audit --audit-level=critical",
     "test:e2e": "playwright test --config playwright/playwright.config.ts",
     "test:smoke": "playwright test --config playwright/playwright.config.ts --grep @smoke",
-    "test:e2e:report": "playwright show-report reports/e2e/html"
+    "test:e2e:report": "playwright show-report reports/e2e/html",
+    "scan:denylist:history": "node scripts/denylist-scan.mjs --history"
   },
   "devDependencies": {
     "@commitlint/cli": "21.2.4",

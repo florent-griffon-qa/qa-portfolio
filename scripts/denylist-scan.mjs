@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Deny-list scan. Fails when a deny-listed term appears in a file Git would track,
-// in a file path, or in an explicit file passed with --file (commit message).
+// in a file path, in an explicit file passed with --file (commit message), or, with
+// --history, in any commit message or file content of the whole Git history.
 //
 // Contract:
 // - Terms come from the DENYLIST env var (CI secret) or the local .denylist file.
@@ -144,6 +145,72 @@ function selfTest(terms) {
   console.log('denylist-scan: self-test passed (canary detected, negative control clean)');
 }
 
+function git(args, input) {
+  return execFileSync('git', args, {
+    cwd: ROOT,
+    encoding: 'utf8',
+    input,
+    maxBuffer: 256 * 1024 * 1024,
+  });
+}
+
+// --history: every commit message and every file content ever committed, on all refs.
+// Guard: every blob of HEAD must be in the scanned set, or the listing is broken.
+function scanHistory(matchers) {
+  const commits = git(['rev-list', '--all']).split('\n').filter(Boolean);
+  if (commits.length === 0) fail('history: no commit found');
+  for (const sha of commits) {
+    const hit = scanText(git(['log', '-1', '--format=%B', sha]), matchers);
+    if (hit) {
+      fail(`deny-listed term #${hit.index + 1} found in the message of commit ${sha.slice(0, 7)}`);
+    }
+  }
+
+  const pathOf = new Map();
+  for (const line of git(['rev-list', '--all', '--objects']).split('\n')) {
+    const space = line.indexOf(' ');
+    if (space > 0 && !pathOf.has(line.slice(0, space))) {
+      pathOf.set(line.slice(0, space), line.slice(space + 1));
+    }
+  }
+  const blobs = git(
+    ['cat-file', '--batch-check=%(objectname) %(objecttype)'],
+    [...pathOf.keys()].join('\n'),
+  )
+    .split('\n')
+    .filter((line) => line.endsWith(' blob'))
+    .map((line) => line.split(' ')[0]);
+
+  const headBlobs = git(['ls-tree', '-r', 'HEAD'])
+    .split('\n')
+    .filter(Boolean)
+    .map((line) => line.split(/\s+/)[2]);
+  if (headBlobs.some((sha) => !blobs.includes(sha))) {
+    fail('history: the blob listing misses files of HEAD');
+  }
+
+  for (const sha of blobs) {
+    const path = pathOf.get(sha);
+    if (EXCLUDED.some((rx) => rx.test(path))) continue;
+    const pathHit = scanText(path, matchers);
+    if (pathHit) {
+      fail(`deny-listed term #${pathHit.index + 1} found in a path: blob ${sha.slice(0, 7)}`);
+    }
+    const buffer = execFileSync('git', ['cat-file', 'blob', sha], {
+      cwd: ROOT,
+      maxBuffer: 256 * 1024 * 1024,
+    });
+    if (isBinary(buffer)) continue;
+    const hit = scanText(buffer.toString('utf8'), matchers);
+    if (hit) {
+      fail(
+        `deny-listed term #${hit.index + 1} found in ${path} (blob ${sha.slice(0, 7)}, line ${hit.line})`,
+      );
+    }
+  }
+  return { commits: commits.length, blobs: blobs.length };
+}
+
 function main() {
   const { source, terms } = loadTerms();
   if (terms.length === 0) {
@@ -153,6 +220,15 @@ function main() {
   selfTest(terms);
 
   const matchers = compile(terms);
+
+  if (process.argv.includes('--history')) {
+    const { commits, blobs } = scanHistory(matchers);
+    console.log(
+      `denylist-scan: OK - history: ${commits} commit message(s) and ${blobs} blob(s) scanned against ${terms.length} term(s) from ${source}`,
+    );
+    return;
+  }
+
   const fileArgIndex = process.argv.indexOf('--file');
   const targets =
     fileArgIndex !== -1
