@@ -2,9 +2,25 @@
 
 [![CI](https://github.com/florent-griffon-qa/qa-portfolio/actions/workflows/ci.yml/badge.svg)](https://github.com/florent-griffon-qa/qa-portfolio/actions/workflows/ci.yml)
 
-API and UI test automation on public demo applications, built the way I work on real projects:
-measured behaviour before assertions, observed DOM before locators, pinned versions, and a CI
-pipeline that guards secrets as well as quality.
+Florent Griffon, QA Automation Engineer, banking & payments. This repository shows how I work:
+I measure behaviour before asserting, document defects with evidence, keep full traceability,
+and direct AI assistants under explicit rules.
+
+At a glance: 21 API requests / 46 assertions, 4 documented defects + 1 design observation,
+19 test cases across 3 user stories, 10 UI smoke tests (chromium + firefox), CI green.
+
+## Where to look in 5 minutes
+
+- [BUG-001](docs/bugs/BUG-001-auth-bad-credentials-returns-200.md): one defect taken from a real
+  measurement to an evidence-based report, a test that detects the fix, and full traceability.
+- [docs/API_DOC_ANALYSIS.md](docs/API_DOC_ANALYSIS.md): every endpoint measured against its
+  documentation, each difference classified with an explicit rule.
+- [docs/TRACEABILITY.md](docs/TRACEABILITY.md): user story to test case to automated test to
+  defect, with every request and UI test accounted for, and the known coverage gaps.
+- [docs/AI_WORKFLOW.md](docs/AI_WORKFLOW.md): how AI assistants are directed, where a human
+  decides, and what the guardrails caught while building this repository.
+
+## Scope
 
 | Layer    | Target                                                                                                          | Tooling                                       |
 | -------- | --------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
@@ -96,16 +112,6 @@ flowchart LR
   workflow artifacts.
 - `npm audit --audit-level=critical` blocks the pipeline; the full report is informational.
 
-## Security guards
-
-- gitleaks runs on staged changes before each commit and on the full history in CI.
-- A deny-list scan blocks any commit that contains a forbidden term (files, file paths, commit
-  message), and fails the pipeline if one appears anywhere in the Git history. The list itself is never committed: it lives in an
-  ignored local file and in a CI secret, and the scan fails if the list is missing. Before each
-  run, the scan plants a random canary term and checks it finds it, so a broken scanner cannot
-  report a false green.
-- Every version is pinned: npm packages (exact), Docker images (digest), GitHub Actions (commit SHA).
-
 ## How I work with AI
 
 I define the test intent, the acceptance criteria and the rules; an AI assistant generates; a
@@ -116,6 +122,17 @@ The full workflow, with its human validation points, a worked example (BUG-001, 
 to traceability) and its known limitations, is in [docs/AI_WORKFLOW.md](docs/AI_WORKFLOW.md).
 Rules for the assistant live in [`CLAUDE.md`](CLAUDE.md), skills in [`.claude/skills/`](.claude/skills/),
 agents in [`.claude/agents/`](.claude/agents/).
+
+## Security guards
+
+- gitleaks runs on staged changes before each commit and on the full history in CI.
+- A deny-list scan blocks any commit that contains a forbidden term (files, file paths, commit
+  message), and fails the pipeline if one appears anywhere in the Git history. The list itself
+  is never committed: it lives in an ignored local file and in a CI secret, and the scan fails
+  if the list is missing. Before each run, the scan plants a random canary term and checks it
+  finds it, so a broken scanner cannot report a false green.
+- Every version is pinned: npm packages (exact), Docker images (digest), GitHub Actions
+  (commit SHA).
 
 ## Known limitations
 
@@ -135,7 +152,7 @@ agents in [`.claude/agents/`](.claude/agents/).
 
 ## Author
 
-Florent Griffon, QA Engineer. [LinkedIn](https://www.linkedin.com/in/thoflorent-griffon)
+Florent Griffon, QA Automation Engineer. [LinkedIn](https://www.linkedin.com/in/thoflorent-griffon)
 
 ## License
 
