@@ -1,0 +1,1728 @@
+{
+  "info": {
+    "name": "Restful-Booker API tests",
+    "description": "Positive and negative tests for the Restful-Booker API. Each folder creates, reads, updates and deletes its own booking. Known defects assert the current measured behaviour (see postman/README.md).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Reset the per-request expectations before every request. Local variables live for",
+          "// the whole collection run, so a value set by one request would leak into the next.",
+          "pm.variables.set(\"expectedStatus\", 200);",
+          "pm.variables.set(\"knownBug\", \"\");",
+          "pm.variables.set(\"correctStatus\", \"\");",
+          "",
+          "// Run reference (YYMMDD_HHMMSS, UTC), written into free-text fields to find a run's data.",
+          "if (!pm.variables.get(\"runTsSet\")) {",
+          "    const now = new Date();",
+          "    const pad = (n) => String(n).padStart(2, \"0\");",
+          "    pm.collectionVariables.set(\"runTs\", `${String(now.getUTCFullYear()).slice(2)}${pad(now.getUTCMonth() + 1)}${pad(now.getUTCDate())}_${pad(now.getUTCHours())}${pad(now.getUTCMinutes())}${pad(now.getUTCSeconds())}`);",
+          "    pm.variables.set(\"runTsSet\", true);",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Positive",
+      "item": [
+        {
+          "name": "P01 HealthCheck",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Documented and returned as 201: design observation, not a defect (see docs/API_DOC_ANALYSIS.md).",
+                  "pm.variables.set(\"expectedStatus\", 201);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// CONFIGURATION",
+                  "const PLATFORM_API = pm.environment.get(\"PLATFORM_API\") || \"PLATFORM\";",
+                  "const REQUEST_TITLE = pm.info.requestName;",
+                  "const currentFilter = pm.environment.get(\"currentFilter\") || \"default filter\";",
+                  "const expectedStatus = Number(pm.variables.get(\"expectedStatus\"));",
+                  "const knownBug = pm.variables.get(\"knownBug\");",
+                  "const correctStatus = pm.variables.get(\"correctStatus\");",
+                  "",
+                  "// Check the status code. A known defect asserts the CURRENT measured behaviour:",
+                  "// when the API gets fixed, this test fails and says so.",
+                  "if (knownBug) {",
+                  "    pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T01 KNOWN BUG ${knownBug} - returns ${expectedStatus} instead of ${correctStatus}`, function () {",
+                  "        pm.expect(pm.response.code, `${knownBug} may be fixed: expected current behaviour ${expectedStatus}, got ${pm.response.code} - update the test and close the bug`).to.eql(expectedStatus);",
+                  "    });",
+                  "} else {",
+                  "    pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T01 Status code is ${expectedStatus} for the request: ${currentFilter}`, function () {",
+                  "        pm.response.to.have.status(expectedStatus);",
+                  "    });",
+                  "}",
+                  "",
+                  "pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T02 Body is \"${pm.response.text()}\"`, function () {",
+                  "    pm.expect(pm.response.text()).to.eql(pm.collectionVariables.get(\"textCreated\"));",
+                  "});",
+                  "",
+                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().slice(0, 200)}`);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ping",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ping"
+              ]
+            }
+          }
+        },
+        {
+          "name": "P02 CreateToken",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// CONFIGURATION",
+                  "const PLATFORM_API = pm.environment.get(\"PLATFORM_API\") || \"PLATFORM\";",
+                  "const REQUEST_TITLE = pm.info.requestName;",
+                  "const currentFilter = pm.environment.get(\"currentFilter\") || \"default filter\";",
+                  "const expectedStatus = Number(pm.variables.get(\"expectedStatus\"));",
+                  "const knownBug = pm.variables.get(\"knownBug\");",
+                  "const correctStatus = pm.variables.get(\"correctStatus\");",
+                  "",
+                  "// Check the status code. A known defect asserts the CURRENT measured behaviour:",
+                  "// when the API gets fixed, this test fails and says so.",
+                  "if (knownBug) {",
+                  "    pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T01 KNOWN BUG ${knownBug} - returns ${expectedStatus} instead of ${correctStatus}`, function () {",
+                  "        pm.expect(pm.response.code, `${knownBug} may be fixed: expected current behaviour ${expectedStatus}, got ${pm.response.code} - update the test and close the bug`).to.eql(expectedStatus);",
+                  "    });",
+                  "} else {",
+                  "    pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T01 Status code is ${expectedStatus} for the request: ${currentFilter}`, function () {",
+                  "        pm.response.to.have.status(expectedStatus);",
+                  "    });",
+                  "}",
+                  "",
+                  "const body = pm.response.json();",
+                  "pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T02 Token is returned and is alphanumeric`, function () {",
+                  "    pm.expect(body).to.have.property(\"token\");",
+                  "    pm.expect(body.token).to.match(/^[a-z0-9]+$/i);",
+                  "});",
+                  "// The token is stored, never logged.",
+                  "pm.collectionVariables.set(\"token\", body.token);",
+                  "",
+                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().slice(0, 200)}`);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"{{authUsername}}\",\n    \"password\": \"{{authPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth"
+              ]
+            }
+          }
+        },
+        {
+          "name": "P03 CreateBooking",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set(\"additionalNeeds\", `P03 CreateBooking - qa-portfolio run ${pm.collectionVariables.get(\"runTs\")}`);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// CONFIGURATION",
+                  "const PLATFORM_API = pm.environment.get(\"PLATFORM_API\") || \"PLATFORM\";",
+                  "const REQUEST_TITLE = pm.info.requestName;",
+                  "const currentFilter = pm.environment.get(\"currentFilter\") || \"default filter\";",
+                  "const expectedStatus = Number(pm.variables.get(\"expectedStatus\"));",
+                  "const knownBug = pm.variables.get(\"knownBug\");",
+                  "const correctStatus = pm.variables.get(\"correctStatus\");",
+                  "",
+                  "// Check the status code. A known defect asserts the CURRENT measured behaviour:",
+                  "// when the API gets fixed, this test fails and says so.",
+                  "if (knownBug) {",
+                  "    pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T01 KNOWN BUG ${knownBug} - returns ${expectedStatus} instead of ${correctStatus}`, function () {",
+                  "        pm.expect(pm.response.code, `${knownBug} may be fixed: expected current behaviour ${expectedStatus}, got ${pm.response.code} - update the test and close the bug`).to.eql(expectedStatus);",
+                  "    });",
+                  "} else {",
+                  "    pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T01 Status code is ${expectedStatus} for the request: ${currentFilter}`, function () {",
+                  "        pm.response.to.have.status(expectedStatus);",
+                  "    });",
+                  "}",
+                  "",
+                  "const body = pm.response.json();",
+                  "pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T02 bookingid is a positive integer: ${body.bookingid}`, function () {",
+                  "    pm.expect(body.bookingid).to.be.a(\"number\");",
+                  "    pm.expect(Number.isInteger(body.bookingid) && body.bookingid > 0).to.be.true;",
+                  "});",
+                  "pm.collectionVariables.set(\"bookingId\", body.bookingid);",
+                  "",
+                  "const booking = body.booking;",
+                  "pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T03 Booking matches the expected data: ${booking.firstname} ${booking.lastname}, ${booking.totalprice}`, function () {",
+                  "    pm.expect(booking.firstname).to.eql(pm.collectionVariables.get(\"bookingFirstname\"));",
+                  "    pm.expect(booking.lastname).to.eql(pm.collectionVariables.get(\"bookingLastname\"));",
+                  "    pm.expect(booking.totalprice).to.eql(Number(pm.collectionVariables.get(\"bookingTotalPrice\")));",
+                  "    pm.expect(booking.depositpaid).to.eql(pm.collectionVariables.get(\"bookingDepositPaid\") === \"true\");",
+                  "    pm.expect(booking.bookingdates.checkin).to.eql(pm.collectionVariables.get(\"bookingCheckin\"));",
+                  "    pm.expect(booking.bookingdates.checkout).to.eql(pm.collectionVariables.get(\"bookingCheckout\"));",
+                  "});",
+                  "",
+                  "pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T04 additionalneeds carries the run reference: ${body.booking.additionalneeds}`, function () {",
+                  "    pm.expect(body.booking.additionalneeds).to.eql(pm.variables.get(\"additionalNeeds\"));",
+                  "});",
+                  "",
+                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().slice(0, 200)}`);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"firstname\": \"{{bookingFirstname}}\",\n    \"lastname\": \"{{bookingLastname}}\",\n    \"totalprice\": {{bookingTotalPrice}},\n    \"depositpaid\": {{bookingDepositPaid}},\n    \"bookingdates\": {\n        \"checkin\": \"{{bookingCheckin}}\",\n        \"checkout\": \"{{bookingCheckout}}\"\n    },\n    \"additionalneeds\": \"{{additionalNeeds}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/booking",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking"
+              ]
+            }
+          }
+        },
+        {
+          "name": "P04 GetBooking",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// CONFIGURATION",
+                  "const PLATFORM_API = pm.environment.get(\"PLATFORM_API\") || \"PLATFORM\";",
+                  "const REQUEST_TITLE = pm.info.requestName;",
+                  "const currentFilter = pm.environment.get(\"currentFilter\") || \"default filter\";",
+                  "const expectedStatus = Number(pm.variables.get(\"expectedStatus\"));",
+                  "const knownBug = pm.variables.get(\"knownBug\");",
+                  "const correctStatus = pm.variables.get(\"correctStatus\");",
+                  "",
+                  "// Check the status code. A known defect asserts the CURRENT measured behaviour:",
+                  "// when the API gets fixed, this test fails and says so.",
+                  "if (knownBug) {",
+                  "    pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T01 KNOWN BUG ${knownBug} - returns ${expectedStatus} instead of ${correctStatus}`, function () {",
+                  "        pm.expect(pm.response.code, `${knownBug} may be fixed: expected current behaviour ${expectedStatus}, got ${pm.response.code} - update the test and close the bug`).to.eql(expectedStatus);",
+                  "    });",
+                  "} else {",
+                  "    pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T01 Status code is ${expectedStatus} for the request: ${currentFilter}`, function () {",
+                  "        pm.response.to.have.status(expectedStatus);",
+                  "    });",
+                  "}",
+                  "",
+                  "const booking = pm.response.json();",
+                  "pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T02 Booking matches the expected data: ${booking.firstname} ${booking.lastname}, ${booking.totalprice}`, function () {",
+                  "    pm.expect(booking.firstname).to.eql(pm.collectionVariables.get(\"bookingFirstname\"));",
+                  "    pm.expect(booking.lastname).to.eql(pm.collectionVariables.get(\"bookingLastname\"));",
+                  "    pm.expect(booking.totalprice).to.eql(Number(pm.collectionVariables.get(\"bookingTotalPrice\")));",
+                  "    pm.expect(booking.depositpaid).to.eql(pm.collectionVariables.get(\"bookingDepositPaid\") === \"true\");",
+                  "    pm.expect(booking.bookingdates.checkin).to.eql(pm.collectionVariables.get(\"bookingCheckin\"));",
+                  "    pm.expect(booking.bookingdates.checkout).to.eql(pm.collectionVariables.get(\"bookingCheckout\"));",
+                  "});",
+                  "",
+                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().slice(0, 200)}`);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/booking/{{bookingId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking",
+                "{{bookingId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "P05 GetBookingIds",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// CONFIGURATION",
+                  "const PLATFORM_API = pm.environment.get(\"PLATFORM_API\") || \"PLATFORM\";",
+                  "const REQUEST_TITLE = pm.info.requestName;",
+                  "const currentFilter = pm.environment.get(\"currentFilter\") || \"default filter\";",
+                  "const expectedStatus = Number(pm.variables.get(\"expectedStatus\"));",
+                  "const knownBug = pm.variables.get(\"knownBug\");",
+                  "const correctStatus = pm.variables.get(\"correctStatus\");",
+                  "",
+                  "// Check the status code. A known defect asserts the CURRENT measured behaviour:",
+                  "// when the API gets fixed, this test fails and says so.",
+                  "if (knownBug) {",
+                  "    pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T01 KNOWN BUG ${knownBug} - returns ${expectedStatus} instead of ${correctStatus}`, function () {",
+                  "        pm.expect(pm.response.code, `${knownBug} may be fixed: expected current behaviour ${expectedStatus}, got ${pm.response.code} - update the test and close the bug`).to.eql(expectedStatus);",
+                  "    });",
+                  "} else {",
+                  "    pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T01 Status code is ${expectedStatus} for the request: ${currentFilter}`, function () {",
+                  "        pm.response.to.have.status(expectedStatus);",
+                  "    });",
+                  "}",
+                  "",
+                  "const ids = pm.response.json().map((entry) => entry.bookingid);",
+                  "const bookingId = Number(pm.collectionVariables.get(\"bookingId\"));",
+                  "pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T02 Filtered list contains the created booking ${bookingId} (${ids.length} result(s))`, function () {",
+                  "    pm.expect(ids).to.include(bookingId);",
+                  "});",
+                  "",
+                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().slice(0, 200)}`);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/booking?firstname={{bookingFirstname}}&lastname={{bookingLastname}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking"
+              ],
+              "query": [
+                {
+                  "key": "firstname",
+                  "value": "{{bookingFirstname}}"
+                },
+                {
+                  "key": "lastname",
+                  "value": "{{bookingLastname}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "P06 UpdateBooking",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set(\"additionalNeeds\", `P06 UpdateBooking - qa-portfolio run ${pm.collectionVariables.get(\"runTs\")}`);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// CONFIGURATION",
+                  "const PLATFORM_API = pm.environment.get(\"PLATFORM_API\") || \"PLATFORM\";",
+                  "const REQUEST_TITLE = pm.info.requestName;",
+                  "const currentFilter = pm.environment.get(\"currentFilter\") || \"default filter\";",
+                  "const expectedStatus = Number(pm.variables.get(\"expectedStatus\"));",
+                  "const knownBug = pm.variables.get(\"knownBug\");",
+                  "const correctStatus = pm.variables.get(\"correctStatus\");",
+                  "",
+                  "// Check the status code. A known defect asserts the CURRENT measured behaviour:",
+                  "// when the API gets fixed, this test fails and says so.",
+                  "if (knownBug) {",
+                  "    pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T01 KNOWN BUG ${knownBug} - returns ${expectedStatus} instead of ${correctStatus}`, function () {",
+                  "        pm.expect(pm.response.code, `${knownBug} may be fixed: expected current behaviour ${expectedStatus}, got ${pm.response.code} - update the test and close the bug`).to.eql(expectedStatus);",
+                  "    });",
+                  "} else {",
+                  "    pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T01 Status code is ${expectedStatus} for the request: ${currentFilter}`, function () {",
+                  "        pm.response.to.have.status(expectedStatus);",
+                  "    });",
+                  "}",
+                  "",
+                  "const booking = pm.response.json();",
+                  "pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T02 Booking matches the expected data: ${booking.firstname} ${booking.lastname}, ${booking.totalprice}`, function () {",
+                  "    pm.expect(booking.firstname).to.eql(pm.collectionVariables.get(\"updatedFirstname\"));",
+                  "    pm.expect(booking.lastname).to.eql(pm.collectionVariables.get(\"bookingLastname\"));",
+                  "    pm.expect(booking.totalprice).to.eql(Number(pm.collectionVariables.get(\"updatedTotalPrice\")));",
+                  "    pm.expect(booking.depositpaid).to.eql(pm.collectionVariables.get(\"bookingDepositPaid\") === \"true\");",
+                  "    pm.expect(booking.bookingdates.checkin).to.eql(pm.collectionVariables.get(\"bookingCheckin\"));",
+                  "    pm.expect(booking.bookingdates.checkout).to.eql(pm.collectionVariables.get(\"bookingCheckout\"));",
+                  "});",
+                  "",
+                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().slice(0, 200)}`);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "token={{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"firstname\": \"{{updatedFirstname}}\",\n    \"lastname\": \"{{bookingLastname}}\",\n    \"totalprice\": {{updatedTotalPrice}},\n    \"depositpaid\": {{bookingDepositPaid}},\n    \"bookingdates\": {\n        \"checkin\": \"{{bookingCheckin}}\",\n        \"checkout\": \"{{bookingCheckout}}\"\n    },\n    \"additionalneeds\": \"{{additionalNeeds}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/booking/{{bookingId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking",
+                "{{bookingId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "P07 PartialUpdateBooking",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// CONFIGURATION",
+                  "const PLATFORM_API = pm.environment.get(\"PLATFORM_API\") || \"PLATFORM\";",
+                  "const REQUEST_TITLE = pm.info.requestName;",
+                  "const currentFilter = pm.environment.get(\"currentFilter\") || \"default filter\";",
+                  "const expectedStatus = Number(pm.variables.get(\"expectedStatus\"));",
+                  "const knownBug = pm.variables.get(\"knownBug\");",
+                  "const correctStatus = pm.variables.get(\"correctStatus\");",
+                  "",
+                  "// Check the status code. A known defect asserts the CURRENT measured behaviour:",
+                  "// when the API gets fixed, this test fails and says so.",
+                  "if (knownBug) {",
+                  "    pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T01 KNOWN BUG ${knownBug} - returns ${expectedStatus} instead of ${correctStatus}`, function () {",
+                  "        pm.expect(pm.response.code, `${knownBug} may be fixed: expected current behaviour ${expectedStatus}, got ${pm.response.code} - update the test and close the bug`).to.eql(expectedStatus);",
+                  "    });",
+                  "} else {",
+                  "    pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T01 Status code is ${expectedStatus} for the request: ${currentFilter}`, function () {",
+                  "        pm.response.to.have.status(expectedStatus);",
+                  "    });",
+                  "}",
+                  "",
+                  "const booking = pm.response.json();",
+                  "pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T02 Only totalprice changed: ${booking.totalprice}`, function () {",
+                  "    pm.expect(booking.totalprice).to.eql(Number(pm.collectionVariables.get(\"patchedTotalPrice\")));",
+                  "    pm.expect(booking.firstname).to.eql(pm.collectionVariables.get(\"updatedFirstname\"));",
+                  "});",
+                  "",
+                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().slice(0, 200)}`);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "token={{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"totalprice\": {{patchedTotalPrice}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/booking/{{bookingId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking",
+                "{{bookingId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "P08 DeleteBooking",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set(\"expectedStatus\", 201);",
+                  "pm.variables.set(\"knownBug\", \"BUG-003\");",
+                  "pm.variables.set(\"correctStatus\", \"204\");"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// CONFIGURATION",
+                  "const PLATFORM_API = pm.environment.get(\"PLATFORM_API\") || \"PLATFORM\";",
+                  "const REQUEST_TITLE = pm.info.requestName;",
+                  "const currentFilter = pm.environment.get(\"currentFilter\") || \"default filter\";",
+                  "const expectedStatus = Number(pm.variables.get(\"expectedStatus\"));",
+                  "const knownBug = pm.variables.get(\"knownBug\");",
+                  "const correctStatus = pm.variables.get(\"correctStatus\");",
+                  "",
+                  "// Check the status code. A known defect asserts the CURRENT measured behaviour:",
+                  "// when the API gets fixed, this test fails and says so.",
+                  "if (knownBug) {",
+                  "    pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T01 KNOWN BUG ${knownBug} - returns ${expectedStatus} instead of ${correctStatus}`, function () {",
+                  "        pm.expect(pm.response.code, `${knownBug} may be fixed: expected current behaviour ${expectedStatus}, got ${pm.response.code} - update the test and close the bug`).to.eql(expectedStatus);",
+                  "    });",
+                  "} else {",
+                  "    pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T01 Status code is ${expectedStatus} for the request: ${currentFilter}`, function () {",
+                  "        pm.response.to.have.status(expectedStatus);",
+                  "    });",
+                  "}",
+                  "",
+                  "pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T02 Body is \"${pm.response.text()}\"`, function () {",
+                  "    pm.expect(pm.response.text()).to.eql(pm.collectionVariables.get(\"textCreated\"));",
+                  "});",
+                  "",
+                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().slice(0, 200)}`);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "token={{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/booking/{{bookingId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking",
+                "{{bookingId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "P09 GetBooking after delete",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set(\"expectedStatus\", 404);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// CONFIGURATION",
+                  "const PLATFORM_API = pm.environment.get(\"PLATFORM_API\") || \"PLATFORM\";",
+                  "const REQUEST_TITLE = pm.info.requestName;",
+                  "const currentFilter = pm.environment.get(\"currentFilter\") || \"default filter\";",
+                  "const expectedStatus = Number(pm.variables.get(\"expectedStatus\"));",
+                  "const knownBug = pm.variables.get(\"knownBug\");",
+                  "const correctStatus = pm.variables.get(\"correctStatus\");",
+                  "",
+                  "// Check the status code. A known defect asserts the CURRENT measured behaviour:",
+                  "// when the API gets fixed, this test fails and says so.",
+                  "if (knownBug) {",
+                  "    pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T01 KNOWN BUG ${knownBug} - returns ${expectedStatus} instead of ${correctStatus}`, function () {",
+                  "        pm.expect(pm.response.code, `${knownBug} may be fixed: expected current behaviour ${expectedStatus}, got ${pm.response.code} - update the test and close the bug`).to.eql(expectedStatus);",
+                  "    });",
+                  "} else {",
+                  "    pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T01 Status code is ${expectedStatus} for the request: ${currentFilter}`, function () {",
+                  "        pm.response.to.have.status(expectedStatus);",
+                  "    });",
+                  "}",
+                  "",
+                  "pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T02 Body is \"${pm.response.text()}\"`, function () {",
+                  "    pm.expect(pm.response.text()).to.eql(pm.collectionVariables.get(\"textNotFound\"));",
+                  "});",
+                  "",
+                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().slice(0, 200)}`);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/booking/{{bookingId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking",
+                "{{bookingId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Negative",
+      "item": [
+        {
+          "name": "N01 CreateToken",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// CONFIGURATION",
+                  "const PLATFORM_API = pm.environment.get(\"PLATFORM_API\") || \"PLATFORM\";",
+                  "const REQUEST_TITLE = pm.info.requestName;",
+                  "const currentFilter = pm.environment.get(\"currentFilter\") || \"default filter\";",
+                  "const expectedStatus = Number(pm.variables.get(\"expectedStatus\"));",
+                  "const knownBug = pm.variables.get(\"knownBug\");",
+                  "const correctStatus = pm.variables.get(\"correctStatus\");",
+                  "",
+                  "// Check the status code. A known defect asserts the CURRENT measured behaviour:",
+                  "// when the API gets fixed, this test fails and says so.",
+                  "if (knownBug) {",
+                  "    pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T01 KNOWN BUG ${knownBug} - returns ${expectedStatus} instead of ${correctStatus}`, function () {",
+                  "        pm.expect(pm.response.code, `${knownBug} may be fixed: expected current behaviour ${expectedStatus}, got ${pm.response.code} - update the test and close the bug`).to.eql(expectedStatus);",
+                  "    });",
+                  "} else {",
+                  "    pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T01 Status code is ${expectedStatus} for the request: ${currentFilter}`, function () {",
+                  "        pm.response.to.have.status(expectedStatus);",
+                  "    });",
+                  "}",
+                  "",
+                  "const body = pm.response.json();",
+                  "pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T02 Token is returned and is alphanumeric`, function () {",
+                  "    pm.expect(body).to.have.property(\"token\");",
+                  "    pm.expect(body.token).to.match(/^[a-z0-9]+$/i);",
+                  "});",
+                  "// The token is stored, never logged.",
+                  "pm.collectionVariables.set(\"token\", body.token);",
+                  "",
+                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().slice(0, 200)}`);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"{{authUsername}}\",\n    \"password\": \"{{authPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth"
+              ]
+            }
+          }
+        },
+        {
+          "name": "N02 CreateBooking",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set(\"additionalNeeds\", `N02 CreateBooking - qa-portfolio run ${pm.collectionVariables.get(\"runTs\")}`);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// CONFIGURATION",
+                  "const PLATFORM_API = pm.environment.get(\"PLATFORM_API\") || \"PLATFORM\";",
+                  "const REQUEST_TITLE = pm.info.requestName;",
+                  "const currentFilter = pm.environment.get(\"currentFilter\") || \"default filter\";",
+                  "const expectedStatus = Number(pm.variables.get(\"expectedStatus\"));",
+                  "const knownBug = pm.variables.get(\"knownBug\");",
+                  "const correctStatus = pm.variables.get(\"correctStatus\");",
+                  "",
+                  "// Check the status code. A known defect asserts the CURRENT measured behaviour:",
+                  "// when the API gets fixed, this test fails and says so.",
+                  "if (knownBug) {",
+                  "    pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T01 KNOWN BUG ${knownBug} - returns ${expectedStatus} instead of ${correctStatus}`, function () {",
+                  "        pm.expect(pm.response.code, `${knownBug} may be fixed: expected current behaviour ${expectedStatus}, got ${pm.response.code} - update the test and close the bug`).to.eql(expectedStatus);",
+                  "    });",
+                  "} else {",
+                  "    pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T01 Status code is ${expectedStatus} for the request: ${currentFilter}`, function () {",
+                  "        pm.response.to.have.status(expectedStatus);",
+                  "    });",
+                  "}",
+                  "",
+                  "const body = pm.response.json();",
+                  "pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T02 bookingid is a positive integer: ${body.bookingid}`, function () {",
+                  "    pm.expect(body.bookingid).to.be.a(\"number\");",
+                  "    pm.expect(Number.isInteger(body.bookingid) && body.bookingid > 0).to.be.true;",
+                  "});",
+                  "pm.collectionVariables.set(\"negBookingId\", body.bookingid);",
+                  "",
+                  "const booking = body.booking;",
+                  "pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T03 Booking matches the expected data: ${booking.firstname} ${booking.lastname}, ${booking.totalprice}`, function () {",
+                  "    pm.expect(booking.firstname).to.eql(pm.collectionVariables.get(\"bookingFirstname\"));",
+                  "    pm.expect(booking.lastname).to.eql(pm.collectionVariables.get(\"bookingLastname\"));",
+                  "    pm.expect(booking.totalprice).to.eql(Number(pm.collectionVariables.get(\"bookingTotalPrice\")));",
+                  "    pm.expect(booking.depositpaid).to.eql(pm.collectionVariables.get(\"bookingDepositPaid\") === \"true\");",
+                  "    pm.expect(booking.bookingdates.checkin).to.eql(pm.collectionVariables.get(\"bookingCheckin\"));",
+                  "    pm.expect(booking.bookingdates.checkout).to.eql(pm.collectionVariables.get(\"bookingCheckout\"));",
+                  "});",
+                  "",
+                  "pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T04 additionalneeds carries the run reference: ${body.booking.additionalneeds}`, function () {",
+                  "    pm.expect(body.booking.additionalneeds).to.eql(pm.variables.get(\"additionalNeeds\"));",
+                  "});",
+                  "",
+                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().slice(0, 200)}`);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"firstname\": \"{{bookingFirstname}}\",\n    \"lastname\": \"{{bookingLastname}}\",\n    \"totalprice\": {{bookingTotalPrice}},\n    \"depositpaid\": {{bookingDepositPaid}},\n    \"bookingdates\": {\n        \"checkin\": \"{{bookingCheckin}}\",\n        \"checkout\": \"{{bookingCheckout}}\"\n    },\n    \"additionalneeds\": \"{{additionalNeeds}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/booking",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking"
+              ]
+            }
+          }
+        },
+        {
+          "name": "N03 CreateToken with bad credentials",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set(\"expectedStatus\", 200);",
+                  "pm.variables.set(\"knownBug\", \"BUG-001\");",
+                  "pm.variables.set(\"correctStatus\", \"401\");"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// CONFIGURATION",
+                  "const PLATFORM_API = pm.environment.get(\"PLATFORM_API\") || \"PLATFORM\";",
+                  "const REQUEST_TITLE = pm.info.requestName;",
+                  "const currentFilter = pm.environment.get(\"currentFilter\") || \"default filter\";",
+                  "const expectedStatus = Number(pm.variables.get(\"expectedStatus\"));",
+                  "const knownBug = pm.variables.get(\"knownBug\");",
+                  "const correctStatus = pm.variables.get(\"correctStatus\");",
+                  "",
+                  "// Check the status code. A known defect asserts the CURRENT measured behaviour:",
+                  "// when the API gets fixed, this test fails and says so.",
+                  "if (knownBug) {",
+                  "    pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T01 KNOWN BUG ${knownBug} - returns ${expectedStatus} instead of ${correctStatus}`, function () {",
+                  "        pm.expect(pm.response.code, `${knownBug} may be fixed: expected current behaviour ${expectedStatus}, got ${pm.response.code} - update the test and close the bug`).to.eql(expectedStatus);",
+                  "    });",
+                  "} else {",
+                  "    pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T01 Status code is ${expectedStatus} for the request: ${currentFilter}`, function () {",
+                  "        pm.response.to.have.status(expectedStatus);",
+                  "    });",
+                  "}",
+                  "",
+                  "const body = pm.response.json();",
+                  "pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T02 KNOWN BUG BUG-001 - body reason is \"${body.reason}\" and no token`, function () {",
+                  "    pm.expect(body.reason, \"BUG-001 response body changed\").to.eql(pm.collectionVariables.get(\"textBadCredentials\"));",
+                  "    pm.expect(body, \"BUG-001 response body changed\").to.not.have.property(\"token\");",
+                  "});",
+                  "",
+                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().slice(0, 200)}`);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"{{authUsername}}\",\n    \"password\": \"{{invalidPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth"
+              ]
+            }
+          }
+        },
+        {
+          "name": "N04 CreateBooking without firstname",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set(\"expectedStatus\", 500);",
+                  "pm.variables.set(\"knownBug\", \"BUG-002\");",
+                  "pm.variables.set(\"correctStatus\", \"400\");"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// CONFIGURATION",
+                  "const PLATFORM_API = pm.environment.get(\"PLATFORM_API\") || \"PLATFORM\";",
+                  "const REQUEST_TITLE = pm.info.requestName;",
+                  "const currentFilter = pm.environment.get(\"currentFilter\") || \"default filter\";",
+                  "const expectedStatus = Number(pm.variables.get(\"expectedStatus\"));",
+                  "const knownBug = pm.variables.get(\"knownBug\");",
+                  "const correctStatus = pm.variables.get(\"correctStatus\");",
+                  "",
+                  "// Check the status code. A known defect asserts the CURRENT measured behaviour:",
+                  "// when the API gets fixed, this test fails and says so.",
+                  "if (knownBug) {",
+                  "    pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T01 KNOWN BUG ${knownBug} - returns ${expectedStatus} instead of ${correctStatus}`, function () {",
+                  "        pm.expect(pm.response.code, `${knownBug} may be fixed: expected current behaviour ${expectedStatus}, got ${pm.response.code} - update the test and close the bug`).to.eql(expectedStatus);",
+                  "    });",
+                  "} else {",
+                  "    pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T01 Status code is ${expectedStatus} for the request: ${currentFilter}`, function () {",
+                  "        pm.response.to.have.status(expectedStatus);",
+                  "    });",
+                  "}",
+                  "",
+                  "pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T02 Body is \"${pm.response.text()}\"`, function () {",
+                  "    pm.expect(pm.response.text()).to.eql(pm.collectionVariables.get(\"textInternalServerError\"));",
+                  "});",
+                  "",
+                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().slice(0, 200)}`);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"lastname\": \"{{bookingLastname}}\",\n    \"totalprice\": {{bookingTotalPrice}},\n    \"depositpaid\": {{bookingDepositPaid}},\n    \"bookingdates\": {\n        \"checkin\": \"{{bookingCheckin}}\",\n        \"checkout\": \"{{bookingCheckout}}\"\n    }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/booking",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking"
+              ]
+            }
+          }
+        },
+        {
+          "name": "N05 CreateBooking with malformed JSON",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set(\"expectedStatus\", 400);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// CONFIGURATION",
+                  "const PLATFORM_API = pm.environment.get(\"PLATFORM_API\") || \"PLATFORM\";",
+                  "const REQUEST_TITLE = pm.info.requestName;",
+                  "const currentFilter = pm.environment.get(\"currentFilter\") || \"default filter\";",
+                  "const expectedStatus = Number(pm.variables.get(\"expectedStatus\"));",
+                  "const knownBug = pm.variables.get(\"knownBug\");",
+                  "const correctStatus = pm.variables.get(\"correctStatus\");",
+                  "",
+                  "// Check the status code. A known defect asserts the CURRENT measured behaviour:",
+                  "// when the API gets fixed, this test fails and says so.",
+                  "if (knownBug) {",
+                  "    pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T01 KNOWN BUG ${knownBug} - returns ${expectedStatus} instead of ${correctStatus}`, function () {",
+                  "        pm.expect(pm.response.code, `${knownBug} may be fixed: expected current behaviour ${expectedStatus}, got ${pm.response.code} - update the test and close the bug`).to.eql(expectedStatus);",
+                  "    });",
+                  "} else {",
+                  "    pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T01 Status code is ${expectedStatus} for the request: ${currentFilter}`, function () {",
+                  "        pm.response.to.have.status(expectedStatus);",
+                  "    });",
+                  "}",
+                  "",
+                  "pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T02 Body is \"${pm.response.text()}\"`, function () {",
+                  "    pm.expect(pm.response.text()).to.eql(pm.collectionVariables.get(\"textBadRequest\"));",
+                  "});",
+                  "",
+                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().slice(0, 200)}`);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"firstname\":",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/booking",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking"
+              ]
+            }
+          }
+        },
+        {
+          "name": "N06 GetBooking with non-numeric id",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set(\"expectedStatus\", 404);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// CONFIGURATION",
+                  "const PLATFORM_API = pm.environment.get(\"PLATFORM_API\") || \"PLATFORM\";",
+                  "const REQUEST_TITLE = pm.info.requestName;",
+                  "const currentFilter = pm.environment.get(\"currentFilter\") || \"default filter\";",
+                  "const expectedStatus = Number(pm.variables.get(\"expectedStatus\"));",
+                  "const knownBug = pm.variables.get(\"knownBug\");",
+                  "const correctStatus = pm.variables.get(\"correctStatus\");",
+                  "",
+                  "// Check the status code. A known defect asserts the CURRENT measured behaviour:",
+                  "// when the API gets fixed, this test fails and says so.",
+                  "if (knownBug) {",
+                  "    pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T01 KNOWN BUG ${knownBug} - returns ${expectedStatus} instead of ${correctStatus}`, function () {",
+                  "        pm.expect(pm.response.code, `${knownBug} may be fixed: expected current behaviour ${expectedStatus}, got ${pm.response.code} - update the test and close the bug`).to.eql(expectedStatus);",
+                  "    });",
+                  "} else {",
+                  "    pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T01 Status code is ${expectedStatus} for the request: ${currentFilter}`, function () {",
+                  "        pm.response.to.have.status(expectedStatus);",
+                  "    });",
+                  "}",
+                  "",
+                  "pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T02 Body is \"${pm.response.text()}\"`, function () {",
+                  "    pm.expect(pm.response.text()).to.eql(pm.collectionVariables.get(\"textNotFound\"));",
+                  "});",
+                  "",
+                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().slice(0, 200)}`);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/booking/{{invalidBookingId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking",
+                "{{invalidBookingId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "N07 UpdateBooking without token",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set(\"additionalNeeds\", `N07 UpdateBooking - qa-portfolio run ${pm.collectionVariables.get(\"runTs\")}`);",
+                  "pm.variables.set(\"expectedStatus\", 403);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// CONFIGURATION",
+                  "const PLATFORM_API = pm.environment.get(\"PLATFORM_API\") || \"PLATFORM\";",
+                  "const REQUEST_TITLE = pm.info.requestName;",
+                  "const currentFilter = pm.environment.get(\"currentFilter\") || \"default filter\";",
+                  "const expectedStatus = Number(pm.variables.get(\"expectedStatus\"));",
+                  "const knownBug = pm.variables.get(\"knownBug\");",
+                  "const correctStatus = pm.variables.get(\"correctStatus\");",
+                  "",
+                  "// Check the status code. A known defect asserts the CURRENT measured behaviour:",
+                  "// when the API gets fixed, this test fails and says so.",
+                  "if (knownBug) {",
+                  "    pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T01 KNOWN BUG ${knownBug} - returns ${expectedStatus} instead of ${correctStatus}`, function () {",
+                  "        pm.expect(pm.response.code, `${knownBug} may be fixed: expected current behaviour ${expectedStatus}, got ${pm.response.code} - update the test and close the bug`).to.eql(expectedStatus);",
+                  "    });",
+                  "} else {",
+                  "    pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T01 Status code is ${expectedStatus} for the request: ${currentFilter}`, function () {",
+                  "        pm.response.to.have.status(expectedStatus);",
+                  "    });",
+                  "}",
+                  "",
+                  "pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T02 Body is \"${pm.response.text()}\"`, function () {",
+                  "    pm.expect(pm.response.text()).to.eql(pm.collectionVariables.get(\"textForbidden\"));",
+                  "});",
+                  "",
+                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().slice(0, 200)}`);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"firstname\": \"{{updatedFirstname}}\",\n    \"lastname\": \"{{bookingLastname}}\",\n    \"totalprice\": {{updatedTotalPrice}},\n    \"depositpaid\": {{bookingDepositPaid}},\n    \"bookingdates\": {\n        \"checkin\": \"{{bookingCheckin}}\",\n        \"checkout\": \"{{bookingCheckout}}\"\n    },\n    \"additionalneeds\": \"{{additionalNeeds}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/booking/{{negBookingId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking",
+                "{{negBookingId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "N08 UpdateBooking with invalid token",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set(\"additionalNeeds\", `N08 UpdateBooking - qa-portfolio run ${pm.collectionVariables.get(\"runTs\")}`);",
+                  "pm.variables.set(\"expectedStatus\", 403);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// CONFIGURATION",
+                  "const PLATFORM_API = pm.environment.get(\"PLATFORM_API\") || \"PLATFORM\";",
+                  "const REQUEST_TITLE = pm.info.requestName;",
+                  "const currentFilter = pm.environment.get(\"currentFilter\") || \"default filter\";",
+                  "const expectedStatus = Number(pm.variables.get(\"expectedStatus\"));",
+                  "const knownBug = pm.variables.get(\"knownBug\");",
+                  "const correctStatus = pm.variables.get(\"correctStatus\");",
+                  "",
+                  "// Check the status code. A known defect asserts the CURRENT measured behaviour:",
+                  "// when the API gets fixed, this test fails and says so.",
+                  "if (knownBug) {",
+                  "    pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T01 KNOWN BUG ${knownBug} - returns ${expectedStatus} instead of ${correctStatus}`, function () {",
+                  "        pm.expect(pm.response.code, `${knownBug} may be fixed: expected current behaviour ${expectedStatus}, got ${pm.response.code} - update the test and close the bug`).to.eql(expectedStatus);",
+                  "    });",
+                  "} else {",
+                  "    pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T01 Status code is ${expectedStatus} for the request: ${currentFilter}`, function () {",
+                  "        pm.response.to.have.status(expectedStatus);",
+                  "    });",
+                  "}",
+                  "",
+                  "pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T02 Body is \"${pm.response.text()}\"`, function () {",
+                  "    pm.expect(pm.response.text()).to.eql(pm.collectionVariables.get(\"textForbidden\"));",
+                  "});",
+                  "",
+                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().slice(0, 200)}`);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "token={{invalidToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"firstname\": \"{{updatedFirstname}}\",\n    \"lastname\": \"{{bookingLastname}}\",\n    \"totalprice\": {{updatedTotalPrice}},\n    \"depositpaid\": {{bookingDepositPaid}},\n    \"bookingdates\": {\n        \"checkin\": \"{{bookingCheckin}}\",\n        \"checkout\": \"{{bookingCheckout}}\"\n    },\n    \"additionalneeds\": \"{{additionalNeeds}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/booking/{{negBookingId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking",
+                "{{negBookingId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "N09 DeleteBooking without token",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set(\"expectedStatus\", 403);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// CONFIGURATION",
+                  "const PLATFORM_API = pm.environment.get(\"PLATFORM_API\") || \"PLATFORM\";",
+                  "const REQUEST_TITLE = pm.info.requestName;",
+                  "const currentFilter = pm.environment.get(\"currentFilter\") || \"default filter\";",
+                  "const expectedStatus = Number(pm.variables.get(\"expectedStatus\"));",
+                  "const knownBug = pm.variables.get(\"knownBug\");",
+                  "const correctStatus = pm.variables.get(\"correctStatus\");",
+                  "",
+                  "// Check the status code. A known defect asserts the CURRENT measured behaviour:",
+                  "// when the API gets fixed, this test fails and says so.",
+                  "if (knownBug) {",
+                  "    pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T01 KNOWN BUG ${knownBug} - returns ${expectedStatus} instead of ${correctStatus}`, function () {",
+                  "        pm.expect(pm.response.code, `${knownBug} may be fixed: expected current behaviour ${expectedStatus}, got ${pm.response.code} - update the test and close the bug`).to.eql(expectedStatus);",
+                  "    });",
+                  "} else {",
+                  "    pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T01 Status code is ${expectedStatus} for the request: ${currentFilter}`, function () {",
+                  "        pm.response.to.have.status(expectedStatus);",
+                  "    });",
+                  "}",
+                  "",
+                  "pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T02 Body is \"${pm.response.text()}\"`, function () {",
+                  "    pm.expect(pm.response.text()).to.eql(pm.collectionVariables.get(\"textForbidden\"));",
+                  "});",
+                  "",
+                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().slice(0, 200)}`);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/booking/{{negBookingId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking",
+                "{{negBookingId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "N10 DeleteBooking",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set(\"expectedStatus\", 201);",
+                  "pm.variables.set(\"knownBug\", \"BUG-003\");",
+                  "pm.variables.set(\"correctStatus\", \"204\");"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// CONFIGURATION",
+                  "const PLATFORM_API = pm.environment.get(\"PLATFORM_API\") || \"PLATFORM\";",
+                  "const REQUEST_TITLE = pm.info.requestName;",
+                  "const currentFilter = pm.environment.get(\"currentFilter\") || \"default filter\";",
+                  "const expectedStatus = Number(pm.variables.get(\"expectedStatus\"));",
+                  "const knownBug = pm.variables.get(\"knownBug\");",
+                  "const correctStatus = pm.variables.get(\"correctStatus\");",
+                  "",
+                  "// Check the status code. A known defect asserts the CURRENT measured behaviour:",
+                  "// when the API gets fixed, this test fails and says so.",
+                  "if (knownBug) {",
+                  "    pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T01 KNOWN BUG ${knownBug} - returns ${expectedStatus} instead of ${correctStatus}`, function () {",
+                  "        pm.expect(pm.response.code, `${knownBug} may be fixed: expected current behaviour ${expectedStatus}, got ${pm.response.code} - update the test and close the bug`).to.eql(expectedStatus);",
+                  "    });",
+                  "} else {",
+                  "    pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T01 Status code is ${expectedStatus} for the request: ${currentFilter}`, function () {",
+                  "        pm.response.to.have.status(expectedStatus);",
+                  "    });",
+                  "}",
+                  "",
+                  "pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T02 Body is \"${pm.response.text()}\"`, function () {",
+                  "    pm.expect(pm.response.text()).to.eql(pm.collectionVariables.get(\"textCreated\"));",
+                  "});",
+                  "",
+                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().slice(0, 200)}`);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "token={{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/booking/{{negBookingId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking",
+                "{{negBookingId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "N11 DeleteBooking already deleted",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set(\"expectedStatus\", 405);",
+                  "pm.variables.set(\"knownBug\", \"BUG-004\");",
+                  "pm.variables.set(\"correctStatus\", \"404\");"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// CONFIGURATION",
+                  "const PLATFORM_API = pm.environment.get(\"PLATFORM_API\") || \"PLATFORM\";",
+                  "const REQUEST_TITLE = pm.info.requestName;",
+                  "const currentFilter = pm.environment.get(\"currentFilter\") || \"default filter\";",
+                  "const expectedStatus = Number(pm.variables.get(\"expectedStatus\"));",
+                  "const knownBug = pm.variables.get(\"knownBug\");",
+                  "const correctStatus = pm.variables.get(\"correctStatus\");",
+                  "",
+                  "// Check the status code. A known defect asserts the CURRENT measured behaviour:",
+                  "// when the API gets fixed, this test fails and says so.",
+                  "if (knownBug) {",
+                  "    pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T01 KNOWN BUG ${knownBug} - returns ${expectedStatus} instead of ${correctStatus}`, function () {",
+                  "        pm.expect(pm.response.code, `${knownBug} may be fixed: expected current behaviour ${expectedStatus}, got ${pm.response.code} - update the test and close the bug`).to.eql(expectedStatus);",
+                  "    });",
+                  "} else {",
+                  "    pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T01 Status code is ${expectedStatus} for the request: ${currentFilter}`, function () {",
+                  "        pm.response.to.have.status(expectedStatus);",
+                  "    });",
+                  "}",
+                  "",
+                  "pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T02 Body is \"${pm.response.text()}\"`, function () {",
+                  "    pm.expect(pm.response.text()).to.eql(pm.collectionVariables.get(\"textMethodNotAllowed\"));",
+                  "});",
+                  "",
+                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().slice(0, 200)}`);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "token={{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/booking/{{negBookingId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking",
+                "{{negBookingId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "N12 UpdateBooking already deleted",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set(\"additionalNeeds\", `N12 UpdateBooking - qa-portfolio run ${pm.collectionVariables.get(\"runTs\")}`);",
+                  "",
+                  "pm.variables.set(\"expectedStatus\", 405);",
+                  "pm.variables.set(\"knownBug\", \"BUG-004\");",
+                  "pm.variables.set(\"correctStatus\", \"404\");"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// CONFIGURATION",
+                  "const PLATFORM_API = pm.environment.get(\"PLATFORM_API\") || \"PLATFORM\";",
+                  "const REQUEST_TITLE = pm.info.requestName;",
+                  "const currentFilter = pm.environment.get(\"currentFilter\") || \"default filter\";",
+                  "const expectedStatus = Number(pm.variables.get(\"expectedStatus\"));",
+                  "const knownBug = pm.variables.get(\"knownBug\");",
+                  "const correctStatus = pm.variables.get(\"correctStatus\");",
+                  "",
+                  "// Check the status code. A known defect asserts the CURRENT measured behaviour:",
+                  "// when the API gets fixed, this test fails and says so.",
+                  "if (knownBug) {",
+                  "    pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T01 KNOWN BUG ${knownBug} - returns ${expectedStatus} instead of ${correctStatus}`, function () {",
+                  "        pm.expect(pm.response.code, `${knownBug} may be fixed: expected current behaviour ${expectedStatus}, got ${pm.response.code} - update the test and close the bug`).to.eql(expectedStatus);",
+                  "    });",
+                  "} else {",
+                  "    pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T01 Status code is ${expectedStatus} for the request: ${currentFilter}`, function () {",
+                  "        pm.response.to.have.status(expectedStatus);",
+                  "    });",
+                  "}",
+                  "",
+                  "pm.test(`${PLATFORM_API} ${REQUEST_TITLE} - T02 Body is \"${pm.response.text()}\"`, function () {",
+                  "    pm.expect(pm.response.text()).to.eql(pm.collectionVariables.get(\"textMethodNotAllowed\"));",
+                  "});",
+                  "",
+                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().slice(0, 200)}`);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "token={{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"firstname\": \"{{updatedFirstname}}\",\n    \"lastname\": \"{{bookingLastname}}\",\n    \"totalprice\": {{updatedTotalPrice}},\n    \"depositpaid\": {{bookingDepositPaid}},\n    \"bookingdates\": {\n        \"checkin\": \"{{bookingCheckin}}\",\n        \"checkout\": \"{{bookingCheckout}}\"\n    },\n    \"additionalneeds\": \"{{additionalNeeds}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/booking/{{negBookingId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking",
+                "{{negBookingId}}"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "runTs",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "bookingId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "negBookingId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "bookingFirstname",
+      "value": "Jim",
+      "type": "string"
+    },
+    {
+      "key": "bookingLastname",
+      "value": "Brown",
+      "type": "string"
+    },
+    {
+      "key": "bookingTotalPrice",
+      "value": "111",
+      "type": "string"
+    },
+    {
+      "key": "bookingDepositPaid",
+      "value": "true",
+      "type": "string"
+    },
+    {
+      "key": "bookingCheckin",
+      "value": "2026-01-01",
+      "type": "string"
+    },
+    {
+      "key": "bookingCheckout",
+      "value": "2026-01-02",
+      "type": "string"
+    },
+    {
+      "key": "updatedFirstname",
+      "value": "James",
+      "type": "string"
+    },
+    {
+      "key": "updatedTotalPrice",
+      "value": "222",
+      "type": "string"
+    },
+    {
+      "key": "patchedTotalPrice",
+      "value": "333",
+      "type": "string"
+    },
+    {
+      "key": "invalidPassword",
+      "value": "not-the-password",
+      "type": "string"
+    },
+    {
+      "key": "invalidToken",
+      "value": "invalid-token",
+      "type": "string"
+    },
+    {
+      "key": "invalidBookingId",
+      "value": "abc",
+      "type": "string"
+    },
+    {
+      "key": "textCreated",
+      "value": "Created",
+      "type": "string"
+    },
+    {
+      "key": "textNotFound",
+      "value": "Not Found",
+      "type": "string"
+    },
+    {
+      "key": "textForbidden",
+      "value": "Forbidden",
+      "type": "string"
+    },
+    {
+      "key": "textBadRequest",
+      "value": "Bad Request",
+      "type": "string"
+    },
+    {
+      "key": "textInternalServerError",
+      "value": "Internal Server Error",
+      "type": "string"
+    },
+    {
+      "key": "textMethodNotAllowed",
+      "value": "Method Not Allowed",
+      "type": "string"
+    },
+    {
+      "key": "textBadCredentials",
+      "value": "Bad credentials",
+      "type": "string"
+    }
+  ]
+}
