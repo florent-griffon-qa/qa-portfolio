@@ -40,7 +40,8 @@ pm.variables.set("additionalNeeds", `N07 UpdateBooking - qa-portfolio run ${pm.c
    - optional fields: format or value when it is specific (date, enum, number);
    - put the returned values in the test name, so they show up in the Test Results.
 3. Save any value a later request needs in a collection variable, never a hard-coded id.
-4. End with a `console.log` of the status and the start of the body.
+4. End with a `console.log` of the status and the start of the body, copied from an existing
+   request: it redacts any `token` field. Never log a token or a password.
 
 ## 4. Data
 

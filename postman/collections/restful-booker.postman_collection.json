@@ -73,7 +73,8 @@
                   "    pm.expect(pm.response.text()).to.eql(pm.collectionVariables.get(\"textCreated\"));",
                   "});",
                   "",
-                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().slice(0, 200)}`);"
+                  "// Log the status and the start of the body; a token is never logged.",
+                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().replace(/\"token\"\\s*:\\s*\"[^\"]*\"/g, \"\\\"token\\\":\\\"<redacted>\\\"\").slice(0, 200)}`);"
                 ]
               }
             }
@@ -128,7 +129,8 @@
                   "// The token is stored, never logged.",
                   "pm.collectionVariables.set(\"token\", body.token);",
                   "",
-                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().slice(0, 200)}`);"
+                  "// Log the status and the start of the body; a token is never logged.",
+                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().replace(/\"token\"\\s*:\\s*\"[^\"]*\"/g, \"\\\"token\\\":\\\"<redacted>\\\"\").slice(0, 200)}`);"
                 ]
               }
             }
@@ -219,7 +221,8 @@
                   "    pm.expect(body.booking.additionalneeds).to.eql(pm.variables.get(\"additionalNeeds\"));",
                   "});",
                   "",
-                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().slice(0, 200)}`);"
+                  "// Log the status and the start of the body; a token is never logged.",
+                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().replace(/\"token\"\\s*:\\s*\"[^\"]*\"/g, \"\\\"token\\\":\\\"<redacted>\\\"\").slice(0, 200)}`);"
                 ]
               }
             }
@@ -294,7 +297,8 @@
                   "    pm.expect(booking.bookingdates.checkout).to.eql(pm.collectionVariables.get(\"bookingCheckout\"));",
                   "});",
                   "",
-                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().slice(0, 200)}`);"
+                  "// Log the status and the start of the body; a token is never logged.",
+                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().replace(/\"token\"\\s*:\\s*\"[^\"]*\"/g, \"\\\"token\\\":\\\"<redacted>\\\"\").slice(0, 200)}`);"
                 ]
               }
             }
@@ -353,7 +357,8 @@
                   "    pm.expect(ids).to.include(bookingId);",
                   "});",
                   "",
-                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().slice(0, 200)}`);"
+                  "// Log the status and the start of the body; a token is never logged.",
+                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().replace(/\"token\"\\s*:\\s*\"[^\"]*\"/g, \"\\\"token\\\":\\\"<redacted>\\\"\").slice(0, 200)}`);"
                 ]
               }
             }
@@ -434,7 +439,8 @@
                   "    pm.expect(booking.bookingdates.checkout).to.eql(pm.collectionVariables.get(\"bookingCheckout\"));",
                   "});",
                   "",
-                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().slice(0, 200)}`);"
+                  "// Log the status and the start of the body; a token is never logged.",
+                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().replace(/\"token\"\\s*:\\s*\"[^\"]*\"/g, \"\\\"token\\\":\\\"<redacted>\\\"\").slice(0, 200)}`);"
                 ]
               }
             }
@@ -510,7 +516,8 @@
                   "    pm.expect(booking.firstname).to.eql(pm.collectionVariables.get(\"updatedFirstname\"));",
                   "});",
                   "",
-                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().slice(0, 200)}`);"
+                  "// Log the status and the start of the body; a token is never logged.",
+                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().replace(/\"token\"\\s*:\\s*\"[^\"]*\"/g, \"\\\"token\\\":\\\"<redacted>\\\"\").slice(0, 200)}`);"
                 ]
               }
             }
@@ -595,7 +602,8 @@
                   "    pm.expect(pm.response.text()).to.eql(pm.collectionVariables.get(\"textCreated\"));",
                   "});",
                   "",
-                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().slice(0, 200)}`);"
+                  "// Log the status and the start of the body; a token is never logged.",
+                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().replace(/\"token\"\\s*:\\s*\"[^\"]*\"/g, \"\\\"token\\\":\\\"<redacted>\\\"\").slice(0, 200)}`);"
                 ]
               }
             }
@@ -661,7 +669,8 @@
                   "    pm.expect(pm.response.text()).to.eql(pm.collectionVariables.get(\"textNotFound\"));",
                   "});",
                   "",
-                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().slice(0, 200)}`);"
+                  "// Log the status and the start of the body; a token is never logged.",
+                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().replace(/\"token\"\\s*:\\s*\"[^\"]*\"/g, \"\\\"token\\\":\\\"<redacted>\\\"\").slice(0, 200)}`);"
                 ]
               }
             }
@@ -727,7 +736,8 @@
                   "// The token is stored, never logged.",
                   "pm.collectionVariables.set(\"token\", body.token);",
                   "",
-                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().slice(0, 200)}`);"
+                  "// Log the status and the start of the body; a token is never logged.",
+                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().replace(/\"token\"\\s*:\\s*\"[^\"]*\"/g, \"\\\"token\\\":\\\"<redacted>\\\"\").slice(0, 200)}`);"
                 ]
               }
             }
@@ -818,7 +828,8 @@
                   "    pm.expect(body.booking.additionalneeds).to.eql(pm.variables.get(\"additionalNeeds\"));",
                   "});",
                   "",
-                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().slice(0, 200)}`);"
+                  "// Log the status and the start of the body; a token is never logged.",
+                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().replace(/\"token\"\\s*:\\s*\"[^\"]*\"/g, \"\\\"token\\\":\\\"<redacted>\\\"\").slice(0, 200)}`);"
                 ]
               }
             }
@@ -900,7 +911,8 @@
                   "    pm.expect(body, \"BUG-001 response body changed\").to.not.have.property(\"token\");",
                   "});",
                   "",
-                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().slice(0, 200)}`);"
+                  "// Log the status and the start of the body; a token is never logged.",
+                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().replace(/\"token\"\\s*:\\s*\"[^\"]*\"/g, \"\\\"token\\\":\\\"<redacted>\\\"\").slice(0, 200)}`);"
                 ]
               }
             }
@@ -976,7 +988,8 @@
                   "    pm.expect(pm.response.text()).to.eql(pm.collectionVariables.get(\"textInternalServerError\"));",
                   "});",
                   "",
-                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().slice(0, 200)}`);"
+                  "// Log the status and the start of the body; a token is never logged.",
+                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().replace(/\"token\"\\s*:\\s*\"[^\"]*\"/g, \"\\\"token\\\":\\\"<redacted>\\\"\").slice(0, 200)}`);"
                 ]
               }
             }
@@ -1054,7 +1067,8 @@
                   "    pm.expect(pm.response.text()).to.eql(pm.collectionVariables.get(\"textBadRequest\"));",
                   "});",
                   "",
-                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().slice(0, 200)}`);"
+                  "// Log the status and the start of the body; a token is never logged.",
+                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().replace(/\"token\"\\s*:\\s*\"[^\"]*\"/g, \"\\\"token\\\":\\\"<redacted>\\\"\").slice(0, 200)}`);"
                 ]
               }
             }
@@ -1132,7 +1146,8 @@
                   "    pm.expect(pm.response.text()).to.eql(pm.collectionVariables.get(\"textNotFound\"));",
                   "});",
                   "",
-                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().slice(0, 200)}`);"
+                  "// Log the status and the start of the body; a token is never logged.",
+                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().replace(/\"token\"\\s*:\\s*\"[^\"]*\"/g, \"\\\"token\\\":\\\"<redacted>\\\"\").slice(0, 200)}`);"
                 ]
               }
             }
@@ -1199,7 +1214,8 @@
                   "    pm.expect(pm.response.text()).to.eql(pm.collectionVariables.get(\"textForbidden\"));",
                   "});",
                   "",
-                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().slice(0, 200)}`);"
+                  "// Log the status and the start of the body; a token is never logged.",
+                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().replace(/\"token\"\\s*:\\s*\"[^\"]*\"/g, \"\\\"token\\\":\\\"<redacted>\\\"\").slice(0, 200)}`);"
                 ]
               }
             }
@@ -1279,7 +1295,8 @@
                   "    pm.expect(pm.response.text()).to.eql(pm.collectionVariables.get(\"textForbidden\"));",
                   "});",
                   "",
-                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().slice(0, 200)}`);"
+                  "// Log the status and the start of the body; a token is never logged.",
+                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().replace(/\"token\"\\s*:\\s*\"[^\"]*\"/g, \"\\\"token\\\":\\\"<redacted>\\\"\").slice(0, 200)}`);"
                 ]
               }
             }
@@ -1362,7 +1379,8 @@
                   "    pm.expect(pm.response.text()).to.eql(pm.collectionVariables.get(\"textForbidden\"));",
                   "});",
                   "",
-                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().slice(0, 200)}`);"
+                  "// Log the status and the start of the body; a token is never logged.",
+                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().replace(/\"token\"\\s*:\\s*\"[^\"]*\"/g, \"\\\"token\\\":\\\"<redacted>\\\"\").slice(0, 200)}`);"
                 ]
               }
             }
@@ -1425,7 +1443,8 @@
                   "    pm.expect(pm.response.text()).to.eql(pm.collectionVariables.get(\"textCreated\"));",
                   "});",
                   "",
-                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().slice(0, 200)}`);"
+                  "// Log the status and the start of the body; a token is never logged.",
+                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().replace(/\"token\"\\s*:\\s*\"[^\"]*\"/g, \"\\\"token\\\":\\\"<redacted>\\\"\").slice(0, 200)}`);"
                 ]
               }
             }
@@ -1493,7 +1512,8 @@
                   "    pm.expect(pm.response.text()).to.eql(pm.collectionVariables.get(\"textMethodNotAllowed\"));",
                   "});",
                   "",
-                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().slice(0, 200)}`);"
+                  "// Log the status and the start of the body; a token is never logged.",
+                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().replace(/\"token\"\\s*:\\s*\"[^\"]*\"/g, \"\\\"token\\\":\\\"<redacted>\\\"\").slice(0, 200)}`);"
                 ]
               }
             }
@@ -1563,7 +1583,8 @@
                   "    pm.expect(pm.response.text()).to.eql(pm.collectionVariables.get(\"textMethodNotAllowed\"));",
                   "});",
                   "",
-                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().slice(0, 200)}`);"
+                  "// Log the status and the start of the body; a token is never logged.",
+                  "console.log(`${REQUEST_TITLE}: ${pm.response.code} ${pm.response.text().replace(/\"token\"\\s*:\\s*\"[^\"]*\"/g, \"\\\"token\\\":\\\"<redacted>\\\"\").slice(0, 200)}`);"
                 ]
               }
             }
