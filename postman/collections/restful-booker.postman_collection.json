@@ -692,7 +692,7 @@
       "name": "Negative",
       "item": [
         {
-          "name": "N01 CreateToken",
+          "name": "N01 SETUP - CreateToken",
           "event": [
             {
               "listen": "test",
@@ -761,14 +761,14 @@
           }
         },
         {
-          "name": "N02 CreateBooking",
+          "name": "N02 SETUP - CreateBooking",
           "event": [
             {
               "listen": "prerequest",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.variables.set(\"additionalNeeds\", `N02 CreateBooking - qa-portfolio run ${pm.collectionVariables.get(\"runTs\")}`);"
+                  "pm.variables.set(\"additionalNeeds\", `N02 SETUP - CreateBooking - qa-portfolio run ${pm.collectionVariables.get(\"runTs\")}`);"
                 ]
               }
             },

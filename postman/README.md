@@ -36,7 +36,9 @@ booking id. Each folder builds its own chain:
 
 - `Positive`: create a token, create a booking, read it, find it by name, update it, patch it,
   delete it, check it is gone.
-- `Negative`: create its own token and booking, run the negative cases against it, then delete it.
+- `Negative`: create its own token and booking (`N01 SETUP - CreateToken`,
+  `N02 SETUP - CreateBooking`: data preparation, not negative tests), run the negative cases
+  against it, then delete it.
 
 Free-text fields (`additionalneeds`) carry a run reference, `<request> - qa-portfolio run <YYMMDD_HHMMSS>`,
 so the data created by a given run can be found on a shared instance.
