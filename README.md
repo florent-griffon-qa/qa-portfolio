@@ -46,11 +46,16 @@ A `Makefile` wraps the same commands (`make help`).
 ```text
 postman/      Restful-Booker collection, environments (local, public), Newman runner
 playwright/   config, test data per environment, fixtures, Page Objects, smoke specs
-docs/         API documentation analysis, bug reports
+docs/         test strategy, traceability, API documentation analysis, bug reports, AI workflow
+test-management/  user stories, Zephyr-style test cases, Zephyr import CSV
 scripts/      deny-list scan, gitleaks wrapper
 docker/       test runner image, compose stack
+.claude/      AI assistant skills and agents
 .github/      CI pipeline
 ```
+
+Start with [docs/TEST_STRATEGY.md](docs/TEST_STRATEGY.md) and
+[docs/TRACEABILITY.md](docs/TRACEABILITY.md).
 
 ## Test design
 
@@ -103,9 +108,14 @@ flowchart LR
 
 ## How I work with AI
 
-I define the intent and the acceptance criteria, an AI assistant generates the code, I review
-every change, and the CI pipeline validates it. Rules for the assistant live in
-[`CLAUDE.md`](CLAUDE.md). A detailed write-up of the workflow is planned for the next version.
+I define the test intent, the acceptance criteria and the rules; an AI assistant generates; a
+separate read-only reviewer agent checks the output against the rules; I approve; the CI
+pipeline validates. Nothing is pushed without my explicit go.
+
+The full workflow, with its human validation points, a worked example (BUG-001, from measurement
+to traceability) and its known limitations, is in [docs/AI_WORKFLOW.md](docs/AI_WORKFLOW.md).
+Rules for the assistant live in [`CLAUDE.md`](CLAUDE.md), skills in [`.claude/skills/`](.claude/skills/),
+agents in [`.claude/agents/`](.claude/agents/).
 
 ## Known limitations
 
@@ -119,7 +129,7 @@ every change, and the CI pipeline validates it. Rules for the assistant live in
 
 ## Roadmap
 
-- V2: test strategy, traceability, test case management, AI workflow write-up.
+- V2 (done): test strategy, traceability, test case management, AI skills and agents, AI workflow.
 - V3: hybrid API + UI tests on a self-hosted application, nightly runs, published reports.
 - V4: mobile tests with Appium.
 
