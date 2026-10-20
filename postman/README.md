@@ -105,15 +105,20 @@ dependencies. `package.json` pins patched versions with npm `overrides`, always 
 major version so the public API the tools rely on does not change. Each override is proven by a
 full Newman run (Docker and public instance).
 
-| Package      | Installed by default                   | Override | Reason                                                                                                                                            |
-| ------------ | -------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `handlebars` | 4.7.7 / 4.7.8                          | 4.7.10   | Critical: GHSA-2w6w-674q-4c4q, GHSA-8r5x-fm3f-whwj, GHSA-p8wg-vrv2-v86f (+ high and moderate advisories)                                          |
-| `node-forge` | 1.3.1                                  | 1.4.0    | High: GHSA-554w-wpv2-vw27, GHSA-5gfm-wpxj-wjgq, GHSA-2328-f5f3-gj25, GHSA-q67f-28xg-22rw, GHSA-5m6q-g25r-mvwx, GHSA-ppp5-5v6c-4jwp                |
-| `lodash`     | 4.17.21                                | 4.18.1   | High: GHSA-r5fr-rjxr-66jc (+ moderate)                                                                                                            |
-| `flatted`    | 3.2.6                                  | 3.4.4    | High: GHSA-25h7-pfq9-p65f, GHSA-rf6f-7fwh-wjgh                                                                                                    |
-| `jose`       | 4.14.4                                 | 4.15.9   | Moderate: GHSA-hhhv-q57g-882q                                                                                                                     |
-| `qs`         | 6.5.5 / 6.14.2                         | 6.16.1   | Moderate: GHSA-6rw7-vpxm-498p, GHSA-q8mj-m7cp-5q26, GHSA-x5fp-wj9c-mxmx, GHSA-4mjr-xmp4-gh2g                                                      |
-| `underscore` | 1.12.x (`httpntlm` asks for `~1.12.1`) | 1.13.8   | High: GHSA-qpx9-hpmf-5gmw. Minor bump outside the range `httpntlm` declares; `httpntlm` only serves NTLM auth, which this collection does not use |
+| Package      | Installed by default                   | Override | Reason                                                                                                                             |
+| ------------ | -------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `handlebars` | 4.7.7 / 4.7.8                          | 4.7.10   | Critical: GHSA-2w6w-674q-4c4q, GHSA-8r5x-fm3f-whwj, GHSA-p8wg-vrv2-v86f (+ high and moderate advisories)                           |
+| `node-forge` | 1.3.1                                  | 1.4.0    | High: GHSA-554w-wpv2-vw27, GHSA-5gfm-wpxj-wjgq, GHSA-2328-f5f3-gj25, GHSA-q67f-28xg-22rw, GHSA-5m6q-g25r-mvwx, GHSA-ppp5-5v6c-4jwp |
+| `lodash`     | 4.17.21                                | 4.18.1   | High: GHSA-r5fr-rjxr-66jc (+ moderate)                                                                                             |
+| `flatted`    | 3.2.6                                  | 3.4.4    | High: GHSA-25h7-pfq9-p65f, GHSA-rf6f-7fwh-wjgh                                                                                     |
+| `jose`       | 4.14.4                                 | 4.15.9   | Moderate: GHSA-hhhv-q57g-882q                                                                                                      |
+| `qs`         | 6.5.5 / 6.14.2                         | 6.16.1   | Moderate: GHSA-6rw7-vpxm-498p, GHSA-q8mj-m7cp-5q26, GHSA-x5fp-wj9c-mxmx, GHSA-4mjr-xmp4-gh2g                                       |
+| `underscore` | 1.12.x (`httpntlm` asks for `~1.12.1`) | 1.13.8   | High: GHSA-qpx9-hpmf-5gmw (see the note below)                                                                                     |
+
+Note on `underscore`: unlike the other overrides, this one is a minor-version bump (1.12.x to
+1.13.8) outside the range `httpntlm` declares (`~1.12.1`). It is safe here because `httpntlm` is
+only used for NTLM authentication, which this collection does not use. The full Newman run is
+green with the override (Docker and public instance, 46 assertions, 0 failures).
 
 Not fixable within the same major version (listed in the README "Known limitations"):
 `@faker-js/faker` 5.x, `braces` 3.x, `csv-parse` 4.x, `uuid` 3.x / 8.x, and one remaining
