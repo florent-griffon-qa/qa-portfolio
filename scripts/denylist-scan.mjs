@@ -15,10 +15,13 @@
 // - Matching is case-insensitive and whole-word (Unicode-aware boundaries, so
 //   accented terms behave like ASCII ones).
 // - Stops at the first hit. A matched term is never printed, only its index.
+// - Output identifies the loaded list by a fingerprint, never by its size: the first 8 hex
+//   characters of the SHA-256 of the normalised list (terms lowercased, sorted, joined
+//   with "\n"). The same list gives the same fingerprint locally and in CI.
 
 import { Buffer } from 'node:buffer';
 import { execFileSync } from 'node:child_process';
-import { randomBytes } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import {
   existsSync,
   mkdtempSync,
@@ -218,6 +221,14 @@ function scanHistory(matchers) {
   return { commits: commits.length, blobs: blobs.length };
 }
 
+function fingerprint(terms) {
+  const normalised = terms
+    .map((term) => term.toLowerCase())
+    .sort()
+    .join('\n');
+  return createHash('sha256').update(normalised, 'utf8').digest('hex').slice(0, 8);
+}
+
 function main() {
   const { source, terms } = loadTerms();
   if (terms.length === 0) {
@@ -227,11 +238,12 @@ function main() {
   selfTest(terms);
 
   const matchers = compile(terms);
+  const list = `list sha256:${fingerprint(terms)} from ${source}`;
 
   if (process.argv.includes('--history')) {
     const { commits, blobs } = scanHistory(matchers);
     console.log(
-      `denylist-scan: OK - history: ${commits} commit message(s) and ${blobs} blob(s) scanned against ${terms.length} term(s) from ${source}`,
+      `denylist-scan: OK - history: ${commits} commit message(s) and ${blobs} blob(s) scanned against ${list}`,
     );
     return;
   }
@@ -252,9 +264,7 @@ function main() {
       fail(`deny-listed term #${hit.index + 1} found in ${target.display} (${where})`);
     }
   }
-  console.log(
-    `denylist-scan: OK - ${targets.length} file(s) scanned against ${terms.length} term(s) from ${source}`,
-  );
+  console.log(`denylist-scan: OK - ${targets.length} file(s) scanned against ${list}`);
 }
 
 // Final guard, run on every outcome: a canary file left behind (crash, kill,
