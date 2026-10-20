@@ -101,7 +101,7 @@ test and close the bug`. A test that cannot fail proves nothing.
 | Deny-list scan        | `scripts/denylist-scan.mjs`, pre-commit and CI | Forbidden terms in files, paths, commit messages and the full history                                                                                    |
 | Deny-list self-test   | same script, before every run                  | A broken scanner reporting a false green: a random canary is planted and must be found, a negative control must not match, and no canary file may remain |
 | Fail closed           | same script, gitleaks wrapper, Newman runner   | A missing list, a missing tool, or a run with zero assertions is a failure, never a pass                                                                 |
-| Secret handling in CI | `DENYLIST_B64`, scoped to the scan steps       | Partial log masking that would hint at the list (see below)                                                                                              |
+| Secret handling in CI | `DENYLIST_B64`, scoped to the scan steps       | Information about the list leaking through log masking (see below)                                                                                       |
 | `npm audit`           | CI                                             | Critical vulnerabilities in the toolchain                                                                                                                |
 | Pinned versions       | `package.json`, Docker digests, Actions SHAs   | Silent drift between local and CI runs                                                                                                                   |
 | `CLAUDE.md` rule 13   | assistant instructions                         | Destructive Git commands in the working repo; negative tests that need them run in a throwaway clone                                                     |
@@ -118,9 +118,10 @@ Each of these was found by running a check, not by reading code, and fixed in it
   commit, and the hooks were verified on the next ones.
 - A destructive Git command used during a negative test wiped an uncommitted change. Restored and
   re-tested; this is why rule 13 exists.
-- The first CI run showed that GitHub masks a multi-line secret line by line, even inside other
-  words: masked fragments hinted at deny-listed terms. The list is now passed as one base64 line,
-  the old runs were deleted.
+- Reading the first CI log showed that the way a secret is masked in logs can itself reveal
+  information about the secret. The secret is now stored in a form that never appears in any
+  output, and the earlier runs were deleted. Lesson: a masked secret is not proof of a safe log;
+  read a real log before trusting it.
 - Old workflow runs were deleted before their list was shown to the owner. No harm, but the
   process was wrong; this is why rule 15 exists.
 - The end-of-script log of every Postman request printed the authentication token. It now redacts
@@ -136,6 +137,3 @@ Each of these was found by running a check, not by reading code, and fixed in it
   brief says so, but nothing technical prevents a misleading brief.
 - The Zephyr Scale import format (multi-step grouping, custom `Automated` status) is to be
   confirmed at the first real import; see [test-management/README.md](../test-management/README.md).
-- The Newman HTML report stores full responses, including the demo authentication token of the
-  public Restful-Booker instance. It is a public demo credential with no value outside it, but the
-  report artifacts should be treated like logs.

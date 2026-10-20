@@ -5,9 +5,8 @@
 //
 // Contract:
 // - Terms come from the DENYLIST_B64 env var (CI secret) or the local .denylist file.
-//   The CI secret holds the whole file as ONE base64 line: GitHub masks a multi-line
-//   secret line by line, even inside other words, so plain terms would show up as
-//   partial masks in the logs. A single base64 line never appears in any output.
+//   The CI secret holds the whole file as ONE base64 line, a value that never appears
+//   in any output, so log masking cannot reveal anything about the terms.
 // - Fail closed: a missing or empty list is an error, never a silent pass.
 // - A canary self-test runs before every scan. It plants a random term in a temp
 //   file inside the repo and checks the real listing + matching path finds it,
