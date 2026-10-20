@@ -15,7 +15,15 @@
 
 import { execFileSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
-import { existsSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import {
+  existsSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -24,6 +32,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const LIST_FILE = join(ROOT, '.denylist');
 const EXCLUDED = [/^\.git\//, /(^|\/)node_modules\//, /(^|\/)\.denylist$/];
 const WORD_CHAR = /[\p{L}\p{N}_]/u;
+const CANARY_FILE = /^\.denylist-canary-[0-9a-f]+\.tmp$/;
 
 class ScanFailure extends Error {}
 
@@ -165,10 +174,22 @@ function main() {
   );
 }
 
+// Final guard, run on every outcome: a canary file left behind (crash, kill,
+// cleanup bug) must never reach a commit.
+function assertNoCanaryLeft() {
+  const leftovers = readdirSync(ROOT).filter((name) => CANARY_FILE.test(name));
+  if (leftovers.length > 0) {
+    console.error(`denylist-scan: FAIL - canary file(s) left in the repo: ${leftovers.join(', ')}`);
+    process.exitCode = 1;
+  }
+}
+
 try {
   main();
 } catch (error) {
   if (!(error instanceof ScanFailure)) throw error;
   console.error(`denylist-scan: FAIL - ${error.message}`);
   process.exitCode = 1;
+} finally {
+  assertNoCanaryLeft();
 }
