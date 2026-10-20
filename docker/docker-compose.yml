@@ -26,3 +26,13 @@ services:
     volumes:
       - ../reports:/work/reports
     command: ['npm', 'run', 'test:api']
+
+  e2e-tests:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    environment:
+      ENV: local
+    volumes:
+      - ../reports:/work/reports
+    command: ['npm', 'run', 'test:smoke']

@@ -11,7 +11,7 @@
   },
   "scripts": {
     "prepare": "husky",
-    "lint": "eslint . && prettier --check .",
+    "lint": "eslint . --max-warnings 0 && prettier --check . && tsc --noEmit",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
     "scan:denylist": "node scripts/denylist-scan.mjs",
@@ -19,14 +19,19 @@
     "scan:secrets:history": "node scripts/gitleaks.mjs history",
     "test:api": "node postman/run-newman.mjs",
     "test:api:public": "node postman/run-newman.mjs --env public",
-    "audit:critical": "npm audit --audit-level=critical"
+    "audit:critical": "npm audit --audit-level=critical",
+    "test:e2e": "playwright test --config playwright/playwright.config.ts",
+    "test:smoke": "playwright test --config playwright/playwright.config.ts --grep @smoke",
+    "test:e2e:report": "playwright show-report reports/e2e/html"
   },
   "devDependencies": {
     "@commitlint/cli": "21.2.4",
     "@commitlint/config-conventional": "21.2.4",
     "@eslint/js": "10.0.1",
+    "@playwright/test": "1.64.1",
     "@types/node": "22.20.5",
     "eslint": "10.13.0",
+    "eslint-plugin-playwright": "2.12.1",
     "husky": "9.1.7",
     "newman": "6.2.3",
     "newman-reporter-htmlextra": "1.23.1",

@@ -1,0 +1,21 @@
+{
+  "baseUrl": "https://www.saucedemo.com",
+  "password": "secret_sauce",
+  "users": {
+    "standard": "standard_user",
+    "lockedOut": "locked_out_user"
+  },
+  "products": ["Sauce Labs Backpack", "Sauce Labs Bike Light"],
+  "customer": {
+    "firstName": "Jane",
+    "lastName": "Doe",
+    "postalCode": "75001"
+  },
+  "taxRatePercent": 8,
+  "messages": {
+    "lockedOut": "Epic sadface: Sorry, this user has been locked out.",
+    "wrongCredentials": "Epic sadface: Username and password do not match any user in this service",
+    "firstNameRequired": "Error: First Name is required",
+    "orderComplete": "Thank you for your order!"
+  }
+}
