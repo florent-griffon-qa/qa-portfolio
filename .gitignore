@@ -13,7 +13,7 @@ playwright/.cache/
 .env.*
 !.env.example
 
-# Local deny-list (CI reads the DENYLIST secret instead)
+# Local deny-list (CI reads the DENYLIST_B64 secret instead)
 .denylist
 
 # Mobile app binaries (downloaded by script, never committed)

@@ -4,7 +4,10 @@
 // --history, in any commit message or file content of the whole Git history.
 //
 // Contract:
-// - Terms come from the DENYLIST env var (CI secret) or the local .denylist file.
+// - Terms come from the DENYLIST_B64 env var (CI secret) or the local .denylist file.
+//   The CI secret holds the whole file as ONE base64 line: GitHub masks a multi-line
+//   secret line by line, even inside other words, so plain terms would show up as
+//   partial masks in the logs. A single base64 line never appears in any output.
 // - Fail closed: a missing or empty list is an error, never a silent pass.
 // - A canary self-test runs before every scan. It plants a random term in a temp
 //   file inside the repo and checks the real listing + matching path finds it,
@@ -14,6 +17,7 @@
 //   accented terms behave like ASCII ones).
 // - Stops at the first hit. A matched term is never printed, only its index.
 
+import { Buffer } from 'node:buffer';
 import { execFileSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import {
@@ -51,9 +55,13 @@ function parseTerms(text) {
 }
 
 function loadTerms() {
-  const fromEnv = process.env.DENYLIST;
-  if (fromEnv !== undefined && fromEnv.trim() !== '') {
-    return { source: 'DENYLIST env var', terms: parseTerms(fromEnv) };
+  const fromEnv = (process.env.DENYLIST_B64 ?? '').trim();
+  if (fromEnv !== '') {
+    if (!/^[A-Za-z0-9+/]+={0,2}$/.test(fromEnv) || fromEnv.length % 4 !== 0) {
+      fail('DENYLIST_B64 is not a single valid base64 line');
+    }
+    const decoded = Buffer.from(fromEnv, 'base64').toString('utf8');
+    return { source: 'DENYLIST_B64 env var', terms: parseTerms(decoded) };
   }
   if (existsSync(LIST_FILE)) {
     return { source: '.denylist file', terms: parseTerms(readFileSync(LIST_FILE, 'utf8')) };
@@ -214,7 +222,7 @@ function scanHistory(matchers) {
 function main() {
   const { source, terms } = loadTerms();
   if (terms.length === 0) {
-    fail(`no deny-list terms loaded (source: ${source}). Set DENYLIST or create .denylist`);
+    fail(`no deny-list terms loaded (source: ${source}). Set DENYLIST_B64 or create .denylist`);
   }
 
   selfTest(terms);

@@ -43,11 +43,11 @@ jobs:
         run: node scripts/gitleaks.mjs history
       - name: Deny-list (working tree)
         env:
-          DENYLIST: ${{ secrets.DENYLIST }}
+          DENYLIST_B64: ${{ secrets.DENYLIST_B64 }}
         run: node scripts/denylist-scan.mjs
       - name: Deny-list (full history)
         env:
-          DENYLIST: ${{ secrets.DENYLIST }}
+          DENYLIST_B64: ${{ secrets.DENYLIST_B64 }}
         run: node scripts/denylist-scan.mjs --history
       - name: npm audit (blocking on critical)
         run: npm audit --audit-level=critical
