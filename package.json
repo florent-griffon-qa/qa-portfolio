@@ -7,7 +7,7 @@
   "author": "Florent Griffon",
   "type": "module",
   "engines": {
-    "node": ">=22.17.1 <23"
+    "node": ">=24.21.0 <25"
   },
   "scripts": {
     "prepare": "husky",
