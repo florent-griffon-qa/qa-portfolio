@@ -157,3 +157,5 @@ Florent Griffon, QA Automation Engineer. [LinkedIn](https://www.linkedin.com/in/
 ## License
 
 [MIT](LICENSE)
+
+Last reviewed: 2026-10-25
