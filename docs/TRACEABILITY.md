@@ -7,6 +7,8 @@ User story -> test case -> automated test -> defect or observation.
 - Postman requests: `postman/collections/restful-booker.postman_collection.json`, folder
   `Positive` (P01 to P09) and `Negative` (N01 to N12).
 - Playwright tests: `playwright/tests/smoke/`.
+- Robot Framework tests: `robot/tests/`, linked to the same test cases by `[Tags]` (QAP-Tn). The
+  mapping is in [robot/README.md](../robot/README.md#traceability).
 - Defects and observations: [docs/bugs/](bugs/) and [API_DOC_ANALYSIS.md](API_DOC_ANALYSIS.md).
 
 ## US-001 - Create and find a booking

@@ -1,0 +1,6 @@
+{
+  "PLATFORM_API": "RB-LOCAL",
+  "BASE_URL": "http://localhost:3001",
+  "AUTH_USERNAME": "admin",
+  "AUTH_PASSWORD": "password123"
+}

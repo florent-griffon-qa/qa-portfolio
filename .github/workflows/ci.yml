@@ -119,3 +119,67 @@ jobs:
           name: e2e-report
           path: reports/e2e/
           if-no-files-found: warn
+
+  robot-api:
+    name: robot-api
+    needs: secrets-scan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      restful-booker:
+        image: mwinteringham/restfulbooker@sha256:e4a04233731ceca2e6d99bca16689e0d4bc44631047ab351b6f11b5fa08fb418
+        ports:
+          - 3001:3001
+        options: >-
+          --health-cmd "curl -fs -o /dev/null http://localhost:3001/booking"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.13'
+          cache: pip
+          cache-dependency-path: robot/requirements.txt
+      - run: python -m pip install -r robot/requirements.txt
+      - name: Robot Framework API suites (local Restful-Booker container)
+        env:
+          ENV: local
+          BASE_URL: http://localhost:3001
+        run: python robot/run.py api
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: robot-api-report
+          path: reports/robot/api/
+          if-no-files-found: warn
+
+  robot-web:
+    name: robot-web
+    needs: robot-api
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.13'
+          cache: pip
+          cache-dependency-path: robot/requirements.txt
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+      - run: python -m pip install -r robot/requirements.txt
+      - name: Browser library init (chromium only, with system dependencies)
+        run: rfbrowser init --with-deps chromium
+      - name: Robot Framework web suites (public SauceDemo)
+        env:
+          ENV: public
+        run: python robot/run.py web
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: robot-web-report
+          path: reports/robot/web/
+          if-no-files-found: warn
