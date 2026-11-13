@@ -2,7 +2,7 @@
 # also work on Windows without make).
 COMPOSE := docker compose -f docker/docker-compose.yml
 
-.PHONY: help install lint scan test-api test-api-public test-smoke docker-api docker-e2e down clean
+.PHONY: help install lint scan test-api test-api-public test-smoke robot-install robot-api robot-web docker-api docker-e2e down clean
 
 help: ## List the targets
 	@grep -E '^[a-z0-9-]+:.*## ' Makefile | awk -F ':.*## ' '{printf "%-16s %s\n", $$1, $$2}'
@@ -26,6 +26,16 @@ test-api-public: ## Newman against the public API
 
 test-smoke: ## Playwright smoke suite (needs browsers: npx playwright install)
 	npm run test:smoke
+
+robot-install: ## Robot Framework: Python packages and Browser library (run inside your venv)
+	python -m pip install -r robot/requirements.txt
+	rfbrowser init chromium
+
+robot-api: ## Robot Framework API suites (ENV=local by default)
+	python robot/run.py api
+
+robot-web: ## Robot Framework web suites against the public SauceDemo
+	python robot/run.py web --env public
 
 docker-api: ## API tests in Docker, against a local Restful-Booker container
 	$(COMPOSE) run --rm api-tests

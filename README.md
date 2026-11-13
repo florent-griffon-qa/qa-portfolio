@@ -7,7 +7,8 @@ I measure behaviour before asserting, document defects with evidence, keep full 
 and direct AI assistants under explicit rules.
 
 At a glance: 21 API requests / 46 assertions, 4 documented defects + 1 design observation,
-19 test cases across 3 user stories, 10 UI smoke tests (chromium + firefox), CI green.
+19 test cases across 3 user stories, 10 UI smoke tests (chromium + firefox), the same scope
+re-implemented with Robot Framework (13 API + 5 web tests), CI green.
 
 ## Where to look in 5 minutes
 
@@ -26,6 +27,7 @@ At a glance: 21 API requests / 46 assertions, 4 documented defects + 1 design ob
 | -------- | --------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
 | API      | [Restful-Booker](https://restful-booker.herokuapp.com/apidoc/index.html) (public instance + local Docker image) | Postman, Newman, htmlextra                    |
 | UI       | [SauceDemo](https://www.saucedemo.com)                                                                          | Playwright, TypeScript, Page Objects          |
+| API + UI | Same targets, keyword-driven ([robot/](robot/README.md))                                                        | Robot Framework, RequestsLibrary, Browser     |
 | Pipeline | GitHub Actions                                                                                                  | lint, secrets scan, API tests, UI smoke tests |
 
 ## Quick start
@@ -62,6 +64,7 @@ A `Makefile` wraps the same commands (`make help`).
 ```text
 postman/      Restful-Booker collection, environments (local, public), Newman runner
 playwright/   config, test data per environment, fixtures, Page Objects, smoke specs
+robot/        Robot Framework suites (API and web), keyword resources, page objects, runner
 docs/         test strategy, traceability, API documentation analysis, bug reports, AI workflow
 test-management/  user stories, Zephyr-style test cases, Zephyr import CSV
 scripts/      deny-list scan, gitleaks wrapper
@@ -104,6 +107,8 @@ flowchart LR
   lint[lint<br/>ESLint, Prettier, tsc] --> scan[secrets-scan<br/>gitleaks, deny-list, npm audit]
   scan --> api[api-tests<br/>Newman vs Restful-Booker container]
   api --> e2e[e2e-smoke<br/>Playwright container]
+  scan --> rapi[robot-api<br/>Robot vs Restful-Booker container]
+  rapi --> rweb[robot-web<br/>Robot Browser vs SauceDemo]
 ```
 
 - The UI job runs in the same Playwright image (pinned by digest) as `docker/Dockerfile`, so CI

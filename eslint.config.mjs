@@ -4,7 +4,14 @@ import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
   {
-    ignores: ['node_modules/', 'reports/', 'test-results/', 'playwright-report/', 'blob-report/'],
+    ignores: [
+      'node_modules/',
+      '.venv/',
+      'reports/',
+      'test-results/',
+      'playwright-report/',
+      'blob-report/',
+    ],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,

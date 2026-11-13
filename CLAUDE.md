@@ -5,7 +5,7 @@ Instructions for AI coding assistants working in this repository.
 ## Project
 
 QA automation portfolio: Postman/Newman API tests (Restful-Booker) and Playwright UI tests
-(SauceDemo), dockerized, with a GitHub Actions pipeline. All repository content is in English.
+(SauceDemo), the same scope in Robot Framework, dockerized, with a GitHub Actions pipeline. All repository content is in English.
 
 ## Commands
 
@@ -21,6 +21,10 @@ npm run scan:secrets           # gitleaks on staged changes
 
 docker compose -f docker/docker-compose.yml run --rm api-tests
 docker compose -f docker/docker-compose.yml run --rm e2e-tests
+
+python robot/run.py api [--env public]   # Robot Framework API suites (Python venv, robot/README.md)
+python robot/run.py web --env public     # Robot Framework web suites
+python robot/run.py api --dryrun         # Robot syntax check, no request sent
 ```
 
 ## Layout
@@ -28,6 +32,7 @@ docker compose -f docker/docker-compose.yml run --rm e2e-tests
 ```text
 postman/      collection (single source of truth, edited in Postman or in JSON), environments, runner
 playwright/   config, env + test data, fixtures, page objects, specs
+robot/        Robot Framework suites, resources (keywords, page objects), variable files, runner
 docs/         API doc analysis, bug reports
 scripts/      deny-list scan, gitleaks wrapper
 docker/       test runner image, compose stack
